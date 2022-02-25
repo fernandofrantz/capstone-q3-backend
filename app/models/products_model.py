@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from app.configs.database import db
-from sqlalchemy import Column, ForeignKey, Integer, String, false
+from sqlalchemy import Column, ForeignKey, Integer, String
 
 @dataclass
 class CustomerModel(db.Model):
