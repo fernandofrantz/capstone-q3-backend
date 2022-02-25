@@ -1,19 +1,19 @@
 from dataclasses import dataclass
 from app.configs.database import db
-from sqlalchemy import Column, Integer, String, Boolean, null
+from sqlalchemy import Column, Integer, String, Boolean
 
 @dataclass
 class CustomerModel(db.Model):
-    __tablename__ = "customer"
+    __tablename__ = "customers"
 
-    customer_id: int
+    id: int
     name: str
-    e_mail: str
+    email: str
     password_hash: str
     employee: bool
 
-    customer_id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    e_mail = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=True)
     employee = Column(Boolean, nullable=True)

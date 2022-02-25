@@ -13,4 +13,10 @@ def init_app(app: Flask):
 
     app.db = db
 
-    # import models
+    from app.models import customers_model
+    from app.models import orders_model
+    from app.models import order_product_model
+    from app.models import products_model
+    from app.models import categories_model
+    from app.models import inventory_model
+    from app.models import purchase_products_model

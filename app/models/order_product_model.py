@@ -1,22 +1,21 @@
 from dataclasses import dataclass
 from app.configs.database import db
-from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, Date, null
-import datetime
+from sqlalchemy import Column, ForeignKey, Integer
 
 @dataclass
 class CustomerModel(db.Model):
-    __tablename__ = "order_product"
+    __tablename__ = "order_products"
 
-    order_product_id: int
+    id: int
     order_id: int
     product_id: str
     quantity: int
     price: int
     cost: int
 
-    order_product_id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey("order.order_id"), nullable=False)
-    product_id = Column(Integer, ForeignKey("product.product_id"), nullable=False)
+    id = Column(Integer, primary_key=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     quantity = Column(Integer, nullable=False)
     price = Column(Integer, nullable=False)
     cost = Column(Integer, nullable=False)
