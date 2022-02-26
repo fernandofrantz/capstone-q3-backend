@@ -1,20 +1,26 @@
 # capstone-q3-backend
 
 # API E-COMMERCE
+
 ​
 A ideia da API é simular um e-commerce de ponta a ponta, desde a venda ao cliente até a compra para estoque.
 ​
+
 # ENDPOINTS
+
 ​
+
 # CLIENT
+
 ​
+
 ## `POST/signup`
+
 ​
 Register Client.
 
 ​
 Requisition:
-
 
 ```json
 {
@@ -28,11 +34,15 @@ Response:
 
 ```json
 {
-    "access_token": str
+    "name": str,
+    "email": str,
 }
 ```
+
 ​
+
 ## `POST/signin`
+
 ​
 Login do cliente.
 ​
@@ -45,6 +55,7 @@ Requisição:
     "password": str
 }
 ```
+
 ​
 Resposta:
 
@@ -53,15 +64,21 @@ Resposta:
     "access_token": str
 }
 ```
+
 ​
+
 # PRODUTOS
+
 ​
+
 ## `GET/products`
+
 ​
-  Lista apenas alguns produtos, deve aceitar queries de page `"?page=2&per_page=4"` e de categorias (filtrar por uma apenas)
+Lista apenas alguns produtos, deve aceitar queries de page `"?page=2&per_page=4"` e de categorias (filtrar por uma apenas)
 ​
 
 Resposta:
+
 ```json
 {
     "products": [
@@ -69,13 +86,17 @@ Resposta:
     ]
 }
 ```
+
 ​
+
 ## `POST/products`
+
 ​
 Registro do Produto. Precisa de acesso.
 ​
 
 Requisição:
+
 ```json
 {
     "name": str,
@@ -83,8 +104,10 @@ Requisição:
     "price": str
 }
 ```
+
 ​
 Resposta:
+
 ```json
 {
     "id": int,
@@ -96,13 +119,16 @@ Resposta:
 
 - Registra a categoria caso ela ainda não exista
 - Cria na tabela de inventory com estoque incial 0
-​
+  ​
+
 ## `PATCH/products/id`
+
 ​
 Atualização do Produto. Precisa de acesso.
 
 ​
 Requisição:
+
 ```json
 {
     "name": str,
@@ -110,8 +136,10 @@ Requisição:
     "price": str
 }
 ```
+
 ​
 Resposta:
+
 ```json
 {
     "id": int,
@@ -124,11 +152,13 @@ Resposta:
 - Registra a categoria caso ela ainda não exista.
 
 ## `DELETE/products/id`
+
 ​
 Remoção do Produto. Precisa de acesso.
 ​
 
 Resposta:
+
 ```json
 {
     "id": int,
@@ -137,10 +167,15 @@ Resposta:
     "price": str
 }
 ```
+
 ​
+
 # CATEGORIAS
+
 ​
+
 ## `GET/categories`
+
 ​
 Apenas para visualização de categorias existentes.
 ​
@@ -154,8 +189,11 @@ Resposta:
     ]
 }
 ```
+
 ​
+
 ## `GET/categories/id`
+
 ​
 Visualização dos produtos de uma categoria.
 ​
@@ -169,15 +207,21 @@ Resposta:
     ]
 }
 ```
+
 ​
+
 ### ESTOQUE
+
 ​
+
 ## `GET/inventory`
+
 ​
 Apenas visualização do estoque (id, qtde e CMM), deve mostrar alguns apenas e aceitar query. Precisa de acesso.
 ​
 
 Resposta:
+
 ```json
 {
     "inventory": [
@@ -185,13 +229,17 @@ Resposta:
     ]
 }
 ```
+
 ​
+
 ## `GET/inventory/id`
+
 ​
 Visualiza estoque de um produto específico. Precisa de acesso.
 ​
 
 Resposta:
+
 ```json
 {
     "id": int,
@@ -199,15 +247,21 @@ Resposta:
     "cmm": int
 }
 ```
+
 ​
+
 ### VENDAS
+
 ​
+
 ## `POST/order`
+
 ​
 Registro da compra do cliente. Opcional valor de desconto da compra. Precisa de acesso.
 ​
 
 Requisição:
+
 ```json
 {
     "order": [
@@ -216,6 +270,7 @@ Requisição:
     "discount": "20%"
 }
 ```
+
 ​
 Resposta:
 
@@ -229,17 +284,22 @@ E-MAIL
     "total": float
 }
 ```
+
 ​
+
 - Deve registrar o pedido com o preço atual do produto, que pode mudar em outros momentos.
 - Deve retirar a quantidade comprada de estoque.
 - Erros: produto inexistente ou sem quantidade disponível.
-​
+  ​
+
 ## `GET/order/id`
+
 ​
 Mostra informações da compra do cliente. Precisa de acesso.
 ​
 
 Resposta:
+
 ```json
 {
     "order": [
@@ -248,13 +308,17 @@ Resposta:
     "total": float
 }
 ```
+
 ​
+
 ## `PATCH/order/id`
+
 ​
 Atualização da compra do cliente. Precisa de acesso.
 
 ​
 Requisição:
+
 ```json
 {
     "order": [
@@ -263,6 +327,7 @@ Requisição:
     "discount": "20%"
 }
 ```
+
 ​
 Resposta:
 
@@ -276,11 +341,15 @@ E-MAIL
     "total": float
 }
 ```
+
 ​
+
 - Deve atualizar o estoque novamente
 - Erro: nova quantidade não está disponível
-​
+  ​
+
 ## `DELETE/order/id`
+
 ​
 Remoção da compra do cliente. Precisa de acesso.
 
@@ -299,10 +368,14 @@ E-MAIL
 ```
 
 - Voltar a quantidade de produto para estoque
-​
+  ​
+
 ### COMPRAS
+
 ​
+
 ## `POST/purchase`
+
 ​
 Compra de novos produtos para estoque. Precisa de acesso.
 
@@ -316,6 +389,7 @@ Requisição:
     ]
 }
 ```
+
 ​
 Resposta:
 
@@ -331,8 +405,10 @@ Resposta:
 - Deve atualizar a quantidade do produto no estoque
 - Deve atualizar o custo de produto em estoque (média)
 - Erro: necessário produto já ter cadastro para ser comprado
-​
+  ​
+
 ## `GET/purchase/id`
+
 ​
 Mostra informações do pedido de compra para estoque. Precisa de acesso.
 
@@ -347,8 +423,11 @@ Resposta:
     "total": float
 }
 ```
+
 ​
+
 ## `PATCH/purchase/id`
+
 ​
 Atualização informações do pedido de compra para estoque. Precisa de acesso.
 
@@ -362,6 +441,7 @@ Requisição:
     ]
 }
 ```
+
 ​
 Resposta:
 
