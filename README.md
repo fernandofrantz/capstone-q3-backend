@@ -208,7 +208,21 @@ Resposta:
 }
 ```
 
+## `PATCH/categories/id`
+
 ​
+Visualização dos produtos de uma categoria.
+​
+
+Resposta:
+
+```json
+{
+    "nome_da_categoria": [
+        {Products}
+    ]
+}
+```
 
 ### ESTOQUE
 
@@ -248,6 +262,31 @@ Resposta:
 }
 ```
 
+## `PATCH/inventory/id`
+
+​
+Visualiza estoque de um produto específico. Precisa de acesso.
+​
+
+Resposta:
+
+```json
+{
+    "id": int,
+    "qtde": int,
+    "cmm": int
+}
+```
+
+## `DELETE/inventory/id`
+
+​
+Deleta estoque de um produto específico. Precisa de acesso.
+​
+
+Resposta:
+
+`no content, 200 OK`
 ​
 
 ### VENDAS
@@ -292,9 +331,24 @@ E-MAIL
 - Erros: produto inexistente ou sem quantidade disponível.
   ​
 
-## `GET/order/id`
+## `GET/order`
+
+Lista apenas alguns produtos, deve aceitar queries de page "?page=2&per_page=4" e de categorias (filtrar por uma apenas)​
+
+Resposta:
+
+```json
+{
+    "orders": [
+        {orders}
+    ]
+}
+```
 
 ​
+
+## `GET/order/id`
+
 Mostra informações da compra do cliente. Precisa de acesso.
 ​
 

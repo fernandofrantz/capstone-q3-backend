@@ -1,17 +1,19 @@
-from flask import Flask
+from flask import Flask, Blueprint
+from app.routes.purchase_products_blueprint import bp_purchase_products
 from app.routes.categories_blueprint import bp_category
 from app.routes.customers_blueprint import bp_customer
+from app.routes.products_blueprint import bp_products
 from app.routes.intory_blueprint import bp_inventory
 from app.routes.orders_blueprint import bp_orders
-from app.routes.products_blueprint import bp_products
-from app.routes.order_product_blueprint import bp_create_order
-from app.routes.purchase_products_blueprint import bp_purchase_products
+
+bp_api = Blueprint("api", __name__, url_prefix="/")
 
 def init_app(app: Flask):
-    app.register_blueprint(bp_category)
-    app.register_blueprint(bp_customer)
-    app.register_blueprint(bp_create_order)
-    app.register_blueprint(bp_inventory)
-    app.register_blueprint(bp_orders)
-    app.register_blueprint(bp_products)
-    app.register_blueprint(bp_purchase_products)
+    bp_api.register_blueprint(bp_purchase_products)
+    bp_api.register_blueprint(bp_inventory)
+    bp_api.register_blueprint(bp_products)
+    bp_api.register_blueprint(bp_category)
+    bp_api.register_blueprint(bp_customer)
+    bp_api.register_blueprint(bp_orders)
+
+    app.register_blueprint(bp_api)

@@ -13,11 +13,11 @@ class CustomerModel(db.Model):
     password_hash: str
     employee: bool
 
-    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-    password_hash = Column(String, nullable=True)
+    id = Column(Integer, primary_key=True)
     employee = Column(Boolean, nullable=True)
+    password_hash = Column(String, nullable=True)
+    email = Column(String, unique=True, nullable=False)
 
     def serializer(self):
         return {
