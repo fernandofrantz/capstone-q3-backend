@@ -1,8 +1,8 @@
 from flask import Blueprint
-from app.controllers.categories_controller import create_category, get_category, patch_category
+from app.controllers.categories_controller import get_categories, get_category_by_id, patch_category
 
-bp_category = Blueprint('bp_category', __name__, url_prefix='/category')
+bp_categories = Blueprint('bp_categories', __name__, url_prefix='/categories')
 
-bp_category.get('')(create_category)
-bp_category.get('<int:category_id>')(get_category)
-bp_category.patch('<int:category_id>')(patch_category)
+bp_categories.get('')(get_categories)
+bp_categories.get('<int:category_id>')(get_category_by_id)
+bp_categories.patch('<int:category_id>')(patch_category)

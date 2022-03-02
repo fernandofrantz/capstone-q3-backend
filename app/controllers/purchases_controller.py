@@ -1,7 +1,7 @@
 def create_purchase():
     return 'funciona', 200
 
-def get_purchase():
+def get_purchases():
     return 'funciona', 200
 
 def get_purchase_by_id(purchase_id):

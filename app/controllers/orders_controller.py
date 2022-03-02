@@ -1,7 +1,7 @@
 def create_order():
     return 'funciona', 200
 
-def get_order():
+def get_orders():
     return 'funciona', 200
 
 def get_order_by_id(order_id):
