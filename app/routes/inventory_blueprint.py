@@ -1,5 +1,5 @@
 from flask import Blueprint
-from app.controllers.intory_controller import delete_inventory, get_inventory, get_inventory_by_id, patch_inventory
+from app.controllers.inventory_controller import delete_inventory, get_inventory, get_inventory_by_id, patch_inventory
 
 bp_inventory = Blueprint('bp_inventory', __name__, url_prefix='/inventory')
 
