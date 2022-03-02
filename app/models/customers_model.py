@@ -12,10 +12,10 @@ class CustomerModel(db.Model):
     password_hash: str
     employee: bool
 
-    name = Column(String, nullable=False)
     id = Column(Integer, primary_key=True)
-    employee = Column(Boolean, nullable=False, default=False)
-    password_hash = Column(String, nullable=True)
+    name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
+    password_hash = Column(String, nullable=True)
+    employee = Column(Boolean, nullable=False, default=False)
 
     

@@ -8,7 +8,6 @@ class CategoryModel(db.Model):
 
     id: int
     name: str
-    description: str
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)

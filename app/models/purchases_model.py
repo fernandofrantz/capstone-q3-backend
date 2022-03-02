@@ -2,8 +2,7 @@ from dataclasses import dataclass
 import string
 from app.configs.database import db
 from sqlalchemy import Column, Integer, DateTime
-from sqlalchemy.sql import func
-from app.models.products_model import ProductModel
+from datetime import datetime
 from app.models.purchases_products_model import purchases_products
 
 @dataclass
@@ -12,9 +11,9 @@ class PurchaseModel(db.Model):
 
     id: int
     date: string
-    products: ProductModel
+    products: list
 
     id = Column(Integer, primary_key=True)
-    date = Column(DateTime, nullable=False, default=func.current_timestamp())
+    date = Column(DateTime, nullable=False, default=datetime.now)
     
     products = db.relationship("ProductModel", secondary=purchases_products, backref="purchases")
