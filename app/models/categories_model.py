@@ -3,7 +3,7 @@ from app.configs.database import db
 from sqlalchemy import Column, Integer, String
 
 @dataclass
-class CustomerModel(db.Model):
+class CategoryModel(db.Model):
     __tablename__ = "categories"
 
     id: int

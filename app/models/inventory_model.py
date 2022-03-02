@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from app.configs.database import db
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import Column, Integer
 
 @dataclass
-class CustomerModel(db.Model):
+class InventoryModel(db.Model):
     __tablename__ = "inventory"
 
     id: int
@@ -14,4 +14,4 @@ class CustomerModel(db.Model):
     id = Column(Integer, primary_key=True)
     value = Column(Integer, nullable=False)
     quantity = Column(Integer, nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
