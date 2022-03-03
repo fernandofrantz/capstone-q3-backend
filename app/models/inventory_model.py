@@ -9,9 +9,11 @@ class InventoryModel(db.Model):
     id: int
     value: int
     quantity: int
-    product_id: int
+    # product_id: int
 
     id = Column(Integer, primary_key=True)
     value = Column(Integer, nullable=False)
     quantity = Column(Integer, nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey("products.id"), nullable=False)
+
+    
