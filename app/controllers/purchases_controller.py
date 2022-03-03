@@ -48,4 +48,19 @@ def patch_purchase(purchase_id):
     return f'funciona, id: {purchase_id}', 200
 
 def delete_purchase(purchase_id):
-    return f'funciona, id: {purchase_id}', 200
+    session = db.session
+    base_query = session.query(PurchaseModel)
+
+    purchase = base_query.get_or_404(purchase_id)
+
+    for purchase_product in purchase.products:
+        inventory = PurchaseModel.get_inventory(purchase_product.product_id)
+        inventory.quantity = inventory.quantity - purchase_product.quantity
+        inventory.value = inventory.value - purchase_product.value
+
+        session.add(inventory)
+
+    session.delete(purchase)
+    session.commit()
+
+    return '', 204
