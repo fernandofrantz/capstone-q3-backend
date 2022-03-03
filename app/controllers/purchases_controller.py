@@ -11,7 +11,7 @@ def create_purchase():
     purchase = PurchaseModel()
 
     for product in data['products']:
-        PurchaseModel.get_product(product)
+        PurchaseModel.get_product(product["product_id"])
         product['purchase_id'] = purchase.id
 
         purchase_product = PurchaseProductModel(**product)
@@ -20,7 +20,7 @@ def create_purchase():
         inventory = PurchaseModel.get_inventory(purchase_product.product_id)
         inventory.quantity = inventory.quantity + purchase_product.quantity
         inventory.value = inventory.value + purchase_product.value
-        
+
         session.add(inventory)
 
     session.add(purchase)
@@ -29,10 +29,20 @@ def create_purchase():
     return jsonify(purchase), 201
 
 def get_purchases():
-    return 'funciona', 200
+    session = db.session
+    base_query = session.query(PurchaseModel)
+
+    purchases = base_query.all()
+
+    return jsonify(purchases), 200
 
 def get_purchase_by_id(purchase_id):
-    return f'funciona, id: {purchase_id}', 200
+    session = db.session
+    base_query = session.query(PurchaseModel)
+
+    purchase = base_query.get_or_404(purchase_id)
+
+    return jsonify(purchase), 200
 
 def patch_purchase(purchase_id):
     return f'funciona, id: {purchase_id}', 200

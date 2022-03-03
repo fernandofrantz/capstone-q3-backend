@@ -4,7 +4,6 @@ from sqlalchemy import Column, Integer, DateTime
 from datetime import datetime
 
 from app.models.products_model import ProductModel
-from app.models.purchases_products_model import PurchaseProductModel
 from app.models.inventory_model import InventoryModel
 
 @dataclass
@@ -21,9 +20,9 @@ class PurchaseModel(db.Model):
     products = db.relationship("PurchaseProductModel")
 
     @staticmethod
-    def get_product(product: dict) -> ProductModel:
+    def get_product(product_id: int) -> ProductModel:
         base_query = db.session.query(ProductModel)
-        return base_query.get_or_404(product["product_id"])
+        return base_query.get_or_404(product_id)
 
     @staticmethod
     def get_inventory(product_id: int) -> InventoryModel:
