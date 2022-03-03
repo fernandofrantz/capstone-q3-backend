@@ -4,7 +4,11 @@ from werkzeug.exceptions import NotFound
 
 
 def get_inventory():
-    inventory = InventoryModel.query.all()
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 15))
+    start = (page - 1) * per_page if page > 0 else 0
+    end = per_page + start
+    inventory = InventoryModel.query.all()[start:end]
     return jsonify(inventory), 200
 
 def get_inventory_by_id(inventory_id):
