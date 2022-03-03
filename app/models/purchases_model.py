@@ -20,9 +20,9 @@ class PurchaseModel(db.Model):
     products = db.relationship("PurchaseProductModel")
 
     @staticmethod
-    def get_product(product_id: int) -> ProductModel:
+    def check_product(product_id: int) -> ProductModel:
         base_query = db.session.query(ProductModel)
-        return base_query.get_or_404(product_id)
+        base_query.get_or_404(product_id)
 
     @staticmethod
     def get_inventory(product_id: int) -> InventoryModel:
