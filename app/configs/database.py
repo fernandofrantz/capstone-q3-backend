@@ -16,5 +16,5 @@ def init_app(app: Flask):
     from app.models import ProductModel
     from app.models import PurchaseModel
 
+    from app.models.purchases_products_model import PurchaseProductModel
     from app.models.orders_products_model import orders_products
-    from app.models.purchases_products_model import purchases_products
