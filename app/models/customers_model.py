@@ -27,6 +27,7 @@ class CustomerModel(db.Model):
             "id": self.id,
             "name": self.name,
             "email": self.email,
+            "employee": self.employee,
             "password_hash": self.password_hash
         }
 
