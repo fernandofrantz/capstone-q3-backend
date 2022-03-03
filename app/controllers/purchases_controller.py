@@ -1,4 +1,5 @@
 from flask import jsonify, request
+from werkzeug.exceptions import NotFound
 
 from app.configs.database import db
 from app.models.purchases_model import PurchaseModel
@@ -43,9 +44,6 @@ def get_purchase_by_id(purchase_id):
     purchase = base_query.get_or_404(purchase_id)
 
     return jsonify(purchase), 200
-
-def patch_purchase(purchase_id):
-    return f'funciona, id: {purchase_id}', 200
 
 def delete_purchase(purchase_id):
     session = db.session
