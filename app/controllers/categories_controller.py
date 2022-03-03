@@ -27,7 +27,7 @@ def patch_category(category_id:int):
 
     try:
         for key,value in data.items():
-            if type(value) != str:
+            if key == 'name' and type(value) != str:
                 raise TypeError
             setattr(category_filtred,key,value)
             
