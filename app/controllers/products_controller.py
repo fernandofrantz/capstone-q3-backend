@@ -12,3 +12,5 @@ def patch_product(product_id):
 
 def delete_product(product_id):
     return f'funciona, id {product_id}', 200
+
+    ...
