@@ -3,20 +3,29 @@ from app.models.customers_model import CustomerModel
 from http import HTTPStatus
 from flask_jwt_extended import create_access_token
 
+from sqlalchemy.exc import IntegrityError
+from app.services.exceptions import ErrorCustomerValue
+
 def sign_up():
-    new_user_data = request.get_json()
+   try:
+      new_user_data = request.get_json()
 
-    password_to_hash = new_user_data.pop("password")
+      password_to_hash = new_user_data.pop("password")
 
-    new_user = CustomerModel(**new_user_data)
+      new_user = CustomerModel(**new_user_data)
 
-    new_user.password = password_to_hash
+      new_user.password = str(password_to_hash)
 
-    current_app.db.session.add(new_user)
-    current_app.db.session.commit()
+      current_app.db.session.add(new_user)
+      current_app.db.session.commit()
 
-    return jsonify(new_user.serializer()), HTTPStatus.CREATED
+      return jsonify(new_user.serializer()), HTTPStatus.CREATED
 
+   except ErrorCustomerValue as error:
+      return {"message": str(error)}, HTTPStatus.BAD_REQUEST
+
+   except IntegrityError:
+      return {"message": "email already registered"}
 
 def sign_in():
     login_data = request.get_json()
