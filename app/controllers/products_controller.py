@@ -1,7 +1,7 @@
 from flask import jsonify, request
 
 from app.configs.database import db
-from app.models.purchases_model import ProductsModel
+from app.models.products_model import ProductsModel
 
 def create_product():
     data = request.get_json()
