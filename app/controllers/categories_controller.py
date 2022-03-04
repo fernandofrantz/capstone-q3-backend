@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.models.categories_model import CategoryModel
 from app.models.products_model import ProductModel
+from app.services.validations import check_valid_patch
 
 def get_categories():
     all_categories = CategoryModel.query.all()
@@ -26,17 +27,20 @@ def patch_category(category_id:int):
         return {'error':'category not found'},HTTPStatus.NOT_FOUND
 
     try:
+        valid_keys = ['name']
+        check_valid_patch(data,valid_keys)
+
         for key,value in data.items():
-            if key == 'name' and type(value) != str:
-                raise TypeError
             setattr(category_filtred,key,value)
-            
+         
         session.add(category_filtred)
         session.commit()
 
-    except TypeError:
+    except ValueError:
         return {'error':'the type name is not a string'}, HTTPStatus.BAD_REQUEST
     except IntegrityError:
         return {'error':'this category name already exists!'},HTTPStatus.CONFLICT
+    except KeyError as err:
+        return jsonify(err.args[0]),HTTPStatus.BAD_REQUEST
 
     return jsonify(category_filtred),HTTPStatus.OK
