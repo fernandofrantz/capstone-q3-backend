@@ -1,9 +1,11 @@
 from flask import jsonify, request, current_app
 
 from app.configs.database import db
+
 from app.models.products_model import ProductModel
 from app.models.inventory_model import InventoryModel
 from app.models.categories_model import CategoryModel
+
 
 def create_product():
     try:
