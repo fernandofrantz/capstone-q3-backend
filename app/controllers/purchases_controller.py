@@ -46,9 +46,10 @@ def get_purchase_by_id(purchase_id):
 
 def delete_purchase(purchase_id):
     session = db.session
-    base_query = session.query(PurchaseModel)
+    purchase_query = session.query(PurchaseModel)
+    pur_prod_query = session.query(PurchaseProductModel)
 
-    purchase = base_query.get_or_404(purchase_id)
+    purchase = purchase_query.get_or_404(purchase_id)
 
     for purchase_product in purchase.products:
         inventory = PurchaseModel.get_inventory(purchase_product.product_id)
@@ -56,6 +57,11 @@ def delete_purchase(purchase_id):
         inventory.value = inventory.value - purchase_product.value
 
         session.add(inventory)
+
+    pur_prods = pur_prod_query.filter_by(purchase_id=purchase_id).all()
+    
+    for pur_prod in pur_prods:
+        session.delete(pur_prod)
 
     session.delete(purchase)
     session.commit()

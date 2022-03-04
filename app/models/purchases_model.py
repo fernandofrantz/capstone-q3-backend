@@ -27,4 +27,4 @@ class PurchaseModel(db.Model):
     @staticmethod
     def get_inventory(product_id: int) -> InventoryModel:
         base_query = db.session.query(InventoryModel)
-        return base_query.filter_by(product_id=product_id).first_or_404()
+        return base_query.filter_by(product_id=product_id).first()
