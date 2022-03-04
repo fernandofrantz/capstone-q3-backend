@@ -3,8 +3,7 @@ from sqlalchemy.orm import validates
 from app.configs.database import db
 from sqlalchemy import Column, Integer, String, Boolean
 from werkzeug.security import generate_password_hash, check_password_hash
-
-from app.services.exceptions import ErrorCustomerValue
+import re
 
 @dataclass
 class CustomerModel(db.Model):
@@ -38,23 +37,27 @@ class CustomerModel(db.Model):
     def verify_password(self, password_to_compare):
         return check_password_hash(self.password_hash, str(password_to_compare))
 
-    @validates("name", "email", "employee")
+    @validates("name", "email", "password")
     def validates(self, key, value):
         
-        if (key == "name" and type(value) != str):
-            raise ErrorCustomerValue("The key name just accept string values")
+        if (key == "email"):
+            r = re.compile(r'^[\w-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$')
+            if r.match(value):
+                pass
+            else:
+                raise ValueError("wrong email format, valid example: johndoe@example.wathever")
 
-        if (key == "email" and type(value) != str):
-            raise ErrorCustomerValue("The key email just accept string values")
+        if (key != "name" and key != "email" and key != "password"):
+            raise KeyError
 
-        if (key == "email" and type(value) == str):
-            if(len(value.split('@')) != 2):
-                raise ErrorCustomerValue("Invalid email, correct format example: johndoe@email.wathever")
-        
-        if  (key == 'employee' and type(value) != bool):
-            raise ErrorCustomerValue("Key employee just accept boolean values")
-
-        if (type(value) == bool and key != "employee"):
-            raise ErrorCustomerValue("Key for boolean value must be 'employee'")
+        if (type(value) != str):
+            raise ValueError(f'key {key} recieved a {type(value).__name__}, but was expecting str')
 
         return value
+
+
+
+        # # def alphanumeric(password):
+        #     if password == '':
+        #         return False
+        #     return False if re.search("[^\u00C0-\u017FA-Za-z0-9]", password) else True

@@ -4,25 +4,16 @@ from http import HTTPStatus
 from flask_jwt_extended import create_access_token
 
 from sqlalchemy.exc import IntegrityError
-from app.services.exceptions import ErrorCustomerValue
 
 def sign_up():
-   try:
+    try:
         new_user_data = request.get_json()
 
-        verify_name = new_user_data.get('name')
-        verify_email = new_user_data.get('email')
-        verify_password = new_user_data.get('password')
+        verify_name = new_user_data['name']
+        verify_email = new_user_data['email']
+        verify_password = new_user_data['password']
 
-        if (len(new_user_data) == 4 and new_user_data.get('employee') == None):
-            return {"wrong_keys": "accepted keys: [name, email, password, employee]"}
-
-        if (
-            verify_name == None or
-            verify_email == None or
-            verify_password == None
-        ):
-            return {"wrong_keys": "you need to provide at least the keys [name, email, password]"}
+        if len(new_user_data) != 3: raise KeyError
 
         password_to_hash = new_user_data.pop("password")
 
@@ -35,34 +26,51 @@ def sign_up():
 
         return jsonify(new_user.serializer()), HTTPStatus.CREATED
 
-   except ErrorCustomerValue as error:
-        return {"message": str(error)}, HTTPStatus.BAD_REQUEST
+    except KeyError:
+        valid_keys = {"name": str, "email": str, "password": str}
+        return {"invalid_keys": [
+            {"sent_keys": 
+                list(new_user_data.keys())
+            }, 
+            {"valid_keys": 
+                list(valid_keys.keys())
+            }
+        ]}, HTTPStatus.BAD_REQUEST
 
-   except IntegrityError:
-        return {"message": "email already registered"}
+    except ValueError as error:
+        return {"error": str(error)}, HTTPStatus.BAD_REQUEST
+
+    except IntegrityError:
+        return {"conflict": "email already registered"}, HTTPStatus.CONFLICT
 
 def sign_in():
-    login_data = request.get_json()
+    try:    
+        login_data = request.get_json()
 
-    verify_email = login_data.get('email')
-    verify_password = login_data.get('password')
+        verify_email = login_data['email']
+        verify_password = login_data['password']
 
-    if (
-        verify_email == None or
-        verify_password == None
-    ):
-        return {"wrong_keys": "you need to provide at least the keys [email, password]"}
+        found_user = CustomerModel.query.filter(CustomerModel.email == login_data['email']).first()
 
-    found_user = CustomerModel.query.filter(CustomerModel.email == login_data['email']).first()
+        if not found_user:
+            return {"message": "user not found"}, HTTPStatus.NOT_FOUND
 
-    if not found_user:
-        return {"message": "user not found"}, HTTPStatus.NOT_FOUND
+        if (found_user.verify_password(login_data['password'])):
 
-    if (found_user.verify_password(login_data['password'])):
+            access_token = create_access_token(identity=found_user.serializer())
 
-        access_token = create_access_token(identity=found_user.serializer())
+            return {"api_key": access_token}, HTTPStatus.OK
 
-        return {"api_key": access_token}, HTTPStatus.OK
-
-    else:
-        return {"message": "wrong password"}, HTTPStatus.BAD_GATEWAY
+        else:
+            return {"message": "wrong password"}, HTTPStatus.BAD_GATEWAY
+    
+    except KeyError:
+        valid_keys = {"email": str, "password": str}
+        return {"invalid_keys": [
+            {"sent_keys": 
+                list(login_data.keys())
+            }, 
+            {"valid_keys": 
+                list(valid_keys.keys())
+            }
+        ]}, HTTPStatus.BAD_REQUEST
