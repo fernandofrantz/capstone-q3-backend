@@ -1,3 +1,4 @@
+
 def get_inventory():
     return 'funciona', 200
 
