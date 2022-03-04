@@ -4,6 +4,7 @@ from app.configs.database import db
 from app.models.purchases_model import PurchaseModel
 from app.models.purchases_products_model import PurchaseProductModel
 
+
 def create_purchase():
     data = request.get_json()
     session = db.session
@@ -59,7 +60,7 @@ def delete_purchase(purchase_id):
         session.add(inventory)
 
     pur_prods = pur_prod_query.filter_by(purchase_id=purchase_id).all()
-    
+
     for pur_prod in pur_prods:
         session.delete(pur_prod)
 

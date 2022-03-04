@@ -6,6 +6,7 @@ from datetime import datetime
 from app.models.products_model import ProductModel
 from app.models.inventory_model import InventoryModel
 
+
 @dataclass
 class PurchaseModel(db.Model):
     __tablename__ = "purchases"
