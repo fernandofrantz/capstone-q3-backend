@@ -1,6 +1,3 @@
-import email
-from unicodedata import name
-from xml.dom import InvalidAccessErr
 from flask import current_app, jsonify, request
 from app.models.customers_model import CustomerModel
 from http import HTTPStatus

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from xmlrpc.client import boolean
 from sqlalchemy.orm import validates
 from app.configs.database import db
 from sqlalchemy import Column, Integer, String, Boolean
@@ -14,8 +13,6 @@ class CustomerModel(db.Model):
     id: int
     name: str
     email: str
-    password_hash: str
-    employee: bool
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
@@ -28,8 +25,6 @@ class CustomerModel(db.Model):
             "id": self.id,
             "name": self.name,
             "email": self.email,
-            "employee": self.employee,
-            "password_hash": self.password_hash
         }
 
     @property
