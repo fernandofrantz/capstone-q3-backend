@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from xmlrpc.client import boolean
 from sqlalchemy.orm import validates
 from app.configs.database import db
 from sqlalchemy import Column, Integer, String, Boolean
@@ -42,7 +43,7 @@ class CustomerModel(db.Model):
     def verify_password(self, password_to_compare):
         return check_password_hash(self.password_hash, str(password_to_compare))
 
-    @validates("name", "email")
+    @validates("name", "email", "employee")
     def validates(self, key, value):
         
         if (key == "name" and type(value) != str):
@@ -55,4 +56,10 @@ class CustomerModel(db.Model):
             if(len(value.split('@')) != 2):
                 raise ErrorCustomerValue("Invalid email, correct format example: johndoe@email.wathever")
         
+        if  (key == 'employee' and type(value) != bool):
+            raise ErrorCustomerValue("Key employee just accept boolean values")
+
+        if (type(value) == bool and key != "employee"):
+            raise ErrorCustomerValue("Key for boolean value must be 'employee'")
+
         return value
