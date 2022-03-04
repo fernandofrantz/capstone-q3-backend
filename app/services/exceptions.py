@@ -1,0 +1,2 @@
+class ErrorCustomerValue(Exception):
+    pass

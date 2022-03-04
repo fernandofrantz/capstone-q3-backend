@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e1067b27d75d
+Revision ID: 182f772ecbeb
 Revises: 
-Create Date: 2022-03-02 13:43:25.791284
+Create Date: 2022-03-04 11:40:45.511734
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e1067b27d75d'
+revision = '182f772ecbeb'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -25,11 +25,11 @@ def upgrade():
     sa.UniqueConstraint('name')
     )
     op.create_table('customers',
-    sa.Column('name', sa.String(), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('employee', sa.Boolean(), nullable=True),
-    sa.Column('password_hash', sa.String(), nullable=True),
+    sa.Column('name', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
+    sa.Column('password_hash', sa.String(), nullable=True),
+    sa.Column('employee', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
@@ -40,9 +40,9 @@ def upgrade():
     )
     op.create_table('orders',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('discount', sa.String(), nullable=True),
-    sa.Column('order_date', sa.DateTime(), nullable=False),
     sa.Column('customer_id', sa.Integer(), nullable=False),
+    sa.Column('order_date', sa.DateTime(), nullable=False),
+    sa.Column('discount', sa.String(), nullable=True),
     sa.ForeignKeyConstraint(['customer_id'], ['customers.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -50,8 +50,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('price', sa.Integer(), nullable=False),
-    sa.Column('description', sa.String(), nullable=False),
     sa.Column('category_id', sa.Integer(), nullable=False),
+    sa.Column('description', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['category_id'], ['categories.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
