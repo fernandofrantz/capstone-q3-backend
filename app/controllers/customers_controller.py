@@ -40,6 +40,9 @@ def sign_up():
     except ValueError as error:
         return {"error": str(error)}, HTTPStatus.BAD_REQUEST
 
+    except TypeError:
+        return {"error": "expected string value"}, HTTPStatus.BAD_REQUEST
+
     except IntegrityError:
         return {"conflict": "email already registered"}, HTTPStatus.CONFLICT
 
