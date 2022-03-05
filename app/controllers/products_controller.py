@@ -2,6 +2,8 @@ from flask import jsonify, request, current_app
 
 from app.configs.database import db
 
+from werkzeug.exceptions import NotFound
+from app.services.validations import check_valid_patch
 from app.models.products_model import ProductModel
 from app.models.inventory_model import InventoryModel
 from app.models.categories_model import CategoryModel
@@ -38,12 +40,36 @@ def get_products():
     return jsonify(products), 200
 
 def get_product_by_id(product_id):
-    session = db.session
-    base_query = session.query(ProductModel)
-
-    products = base_query.get_or_404(products_id)
-
-    return jsonify(products), 200
+    try:
+        product = ProductModel.query.get_or_404(product_id)
+        return jsonify(product), 200
+    except NotFound:
+        return {"msg": "product not found!"}, 404
 
 def patch_product(product_id):
-    return f'funciona, id {product_id}', 200
+    try:
+        data = request.get_json()
+        product = ProductModel.query.get_or_404(product_id)
+
+        valid_keys = ["name", "price", "description"]
+        check_valid_patch(data, valid_keys)
+
+        for key, name in data.items():
+            setattr(product, key, name)
+        for key, price in data.items():
+            setattr(product, key, price)
+        for key, description in data.items():
+            setattr(product, key, description)
+
+        current_app.db.session.add(product)
+        current_app.db.session.commit()
+
+
+        return jsonify(product), 200
+
+    except NotFound:
+        return {"msg": "product not found!"}, 404
+    except KeyError as err:
+        return jsonify(err.args[0]), 400
+    except TypeError as err:
+        return jsonify(err.args[0]), 400
