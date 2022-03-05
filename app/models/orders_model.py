@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from app.configs.database import db
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy.orm import validates
 from datetime import datetime
 from app.models.orders_products_model import orders_products
 
@@ -9,10 +10,8 @@ class OrderModel(db.Model):
     __tablename__ = "orders"
 
     id: int
-    customer_id: int
     order_date: str
-    discount: int
-    products: list
+    products:list
 
     id = Column(Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey("customers.id"), nullable=False)
