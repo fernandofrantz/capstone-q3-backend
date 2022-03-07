@@ -88,6 +88,24 @@ Resposta:
 ```
 
 ​
+## `GET/products/{id}`
+
+​
+Lista apenas alguns produtos, deve aceitar queries de page `"?page=2&per_page=4"` e de categorias (filtrar por uma apenas)
+​
+
+Resposta:
+
+```json
+{
+  "id": int,
+  "name": str,
+  "price": float,
+  "category_id": int,
+  "description": str
+}
+```
+
 
 ## `POST/products`
 
@@ -101,7 +119,8 @@ Requisição:
 {
     "name": str,
     "category": str,
-    "price": str
+    "price": float,
+    "description": str
 }
 ```
 
@@ -112,8 +131,9 @@ Resposta:
 {
     "id": int,
     "name": str,
-    "category": str,
-    "price": str
+    "category_id": int,
+    "price": float,
+    "description": str
 }
 ```
 
@@ -132,7 +152,7 @@ Requisição:
 ```json
 {
     "name": str,
-    "category": str,
+    "category_id": int,
     "price": str
 }
 ```
@@ -142,33 +162,17 @@ Resposta:
 
 ```json
 {
-    "id": int,
-    "name": str,
-    "category": str,
-    "price": str
+  "id": int,
+  "name": str,
+  "price": float,
+  "category_id": int,
+  "description": str
 }
 ```
 
 - Registra a categoria caso ela ainda não exista.
 
-## `DELETE/products/id`
 
-​
-Remoção do Produto. Precisa de acesso.
-​
-
-Resposta:
-
-```json
-{
-    "id": int,
-    "name": str,
-    "category": str,
-    "price": str
-}
-```
-
-​
 
 # CATEGORIAS
 

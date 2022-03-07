@@ -51,13 +51,13 @@ def patch_product(product_id):
         data = request.get_json()
         product = ProductModel.query.get_or_404(product_id)
 
-        valid_keys = ["name", "price", "description"]
+        valid_keys = ["name", "category_id", "description"]
         check_valid_patch(data, valid_keys)
 
         for key, name in data.items():
             setattr(product, key, name)
-        for key, price in data.items():
-            setattr(product, key, price)
+        for key, category_id in data.items():
+            setattr(product, key, category_id)
         for key, description in data.items():
             setattr(product, key, description)
 
