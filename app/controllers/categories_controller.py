@@ -16,7 +16,8 @@ def get_category_by_id(category_id:int):
     if not category_filtred:
         return {'error':'category not found'},HTTPStatus.NOT_FOUND
     products_filtred_by_category:list[ProductModel] = ProductModel.query.filter_by(category_id=category_id).all()
-    return {category_filtred.name:products_filtred_by_category},HTTPStatus.OK
+
+    return category_filtred.serializer(products_filtred_by_category),HTTPStatus.OK
 
 def patch_category(category_id:int):
     session:Session = current_app.db.session
