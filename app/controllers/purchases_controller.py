@@ -6,7 +6,7 @@ from werkzeug.exceptions import Forbidden
 from app.configs.database import db
 from app.models.purchases_model import PurchaseModel
 from app.models.purchases_products_model import PurchaseProductModel
-from app.services.customer_services import check_if_employee
+from app.services.customers_services import check_if_employee
 from app.services.exceptions import (
     MissingPurchaseProductsListError as MissingList,
     InvalidPurchaseProductsListError as InvalidList,
