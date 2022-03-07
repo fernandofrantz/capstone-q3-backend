@@ -1,5 +1,5 @@
 from flask import jsonify, request, current_app
-
+from http import HTTPStatus
 from app.configs.database import db
 
 from werkzeug.exceptions import NotFound
@@ -26,10 +26,9 @@ def create_product():
         current_app.db.session.add(new_inventory)    
 
         current_app.db.session.commit()
-        return jsonify(new_product), 201
-    except:
-        return jsonify(), 404
-
+        return jsonify(new_product), HTTPStatus.OK
+    except ValueError:
+        return {'error':'the type name is not a string'}, HTTPStatus.BAD_REQUEST
 
 def get_products():
     session = db.session
@@ -37,39 +36,40 @@ def get_products():
 
     products = base_query.all()
 
-    return jsonify(products), 200
+    return jsonify(products), HTTPStatus.OK
 
 def get_product_by_id(product_id):
     try:
         product = ProductModel.query.get_or_404(product_id)
-        return jsonify(product), 200
+        return jsonify(product), HTTPStatus.OK
     except NotFound:
-        return {"msg": "product not found!"}, 404
+        return {"msg": "product not found!"}, HTTPStatus.NOT_FOUND
 
 def patch_product(product_id):
     try:
         data = request.get_json()
         product = ProductModel.query.get_or_404(product_id)
 
-        valid_keys = ["name", "category_id", "description"]
+        valid_keys = ["name", "category_id", "description", "price"]
         check_valid_patch(data, valid_keys)
 
         for key, name in data.items():
             setattr(product, key, name)
         for key, category_id in data.items():
             setattr(product, key, category_id)
+        for key, price in data.items():
+            setattr(product, key, price)
         for key, description in data.items():
             setattr(product, key, description)
 
         current_app.db.session.add(product)
         current_app.db.session.commit()
 
-
-        return jsonify(product), 200
+        return jsonify(product), HTTPStatus.OK
 
     except NotFound:
-        return {"msg": "product not found!"}, 404
+        return {"msg": "product not found!"}, HTTPStatus.NOT_FOUND
     except KeyError as err:
-        return jsonify(err.args[0]), 400
+        return jsonify(err.args[0]), HTTPStatus.BAD_REQUEST
     except TypeError as err:
-        return jsonify(err.args[0]), 400
+        return jsonify(err.args[0]), HTTPStatus.BAD_REQUEST

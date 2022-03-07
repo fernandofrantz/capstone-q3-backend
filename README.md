@@ -153,7 +153,8 @@ Requisição:
 {
     "name": str,
     "category_id": int,
-    "price": str
+    "price": str,
+    "description": str
 }
 ```
 
