@@ -1,3 +1,6 @@
+class ErrorCustomerValue(Exception):
+    pass
+
 class MissingPurchaseProductsListError(Exception):
     status_code = 400
     response = {"error": "Request must contain a 'products' list"}
