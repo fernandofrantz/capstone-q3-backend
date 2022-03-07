@@ -9,7 +9,6 @@ class ProductModel(db.Model):
     id: int
     name: str
     price: str
-    category_id: int
     description: str
 
     id = Column(Integer, primary_key=True)

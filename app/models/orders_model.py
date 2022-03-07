@@ -17,5 +17,6 @@ class OrderModel(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey("customers.id"), nullable=False)
     order_date = Column(DateTime, nullable=False, default=datetime.now)
     discount = Column(String, nullable=True)
+    status=Column(String,nullable=False)
 
     products = db.relationship("ProductModel", secondary=orders_products, backref="orders")
