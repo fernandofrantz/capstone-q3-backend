@@ -1,7 +1,7 @@
 from flask import jsonify, request, current_app
 from http import HTTPStatus
 from app.configs.database import db
-
+from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
 from app.services.validations import check_valid_patch
 from app.models.products_model import ProductModel
@@ -12,6 +12,10 @@ from app.models.categories_model import CategoryModel
 def create_product():
     try:
         data = request.get_json()
+
+        valid_keys = ["name", "category", "description", "price"]
+        check_valid_patch(data, valid_keys)
+
         category = CategoryModel.query.filter_by(name=data["category"]).first()
         if category == None:
             category = CategoryModel(**{"name":data["category"]})
@@ -27,8 +31,19 @@ def create_product():
 
         current_app.db.session.commit()
         return jsonify(new_product), HTTPStatus.OK
-    except ValueError:
-        return {'error':'the type name is not a string'}, HTTPStatus.BAD_REQUEST
+        
+    except KeyError:
+        data = request.get_json()
+        for key in data.keys():
+            if key != 'name' and key != 'price' and key != 'description' and key != 'category':
+                wrong_key = key
+        return {"available_keys": ["name", "price", "description", "category"], "wrong_keys_sended":[wrong_key]}, HTTPStatus.BAD_REQUEST
+
+    except ValueError as error:
+        return {"error": str(error)}, HTTPStatus.BAD_REQUEST
+
+    except TypeError:
+        return {"error": "description, category and name needs to be a string. price need to be a float number"}, HTTPStatus.BAD_REQUEST
 
 def get_products():
     session = db.session
@@ -55,12 +70,6 @@ def patch_product(product_id):
 
         for key, name in data.items():
             setattr(product, key, name)
-        for key, category_id in data.items():
-            setattr(product, key, category_id)
-        for key, price in data.items():
-            setattr(product, key, price)
-        for key, description in data.items():
-            setattr(product, key, description)
 
         current_app.db.session.add(product)
         current_app.db.session.commit()
@@ -69,7 +78,19 @@ def patch_product(product_id):
 
     except NotFound:
         return {"msg": "product not found!"}, HTTPStatus.NOT_FOUND
-    except KeyError as err:
-        return jsonify(err.args[0]), HTTPStatus.BAD_REQUEST
-    except TypeError as err:
-        return jsonify(err.args[0]), HTTPStatus.BAD_REQUEST
+    except KeyError:
+        valid_keys = {"name": str, "price": float, "description": str, "category_id": str}
+        return {"invalid_keys": [
+            {"sent_keys": 
+                list(data.keys())
+            }, 
+            {"valid_keys": 
+                list(valid_keys.keys())
+            }
+        ]}, HTTPStatus.BAD_REQUEST
+
+    except ValueError as error:
+        return {"error": str(error)}, HTTPStatus.BAD_REQUEST
+
+    except TypeError:
+        return {"error": "description, category and name needs to be a string. price need to be a float number"}, HTTPStatus.BAD_REQUEST
