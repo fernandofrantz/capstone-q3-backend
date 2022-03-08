@@ -3,6 +3,7 @@ from app.models.customers_model import CustomerModel
 from flask_jwt_extended import create_access_token
 from flask import current_app, jsonify, request
 from sqlalchemy.exc import IntegrityError
+from flask_jwt_extended import jwt_required
 from http import HTTPStatus
 import re
 
@@ -79,6 +80,7 @@ def sign_in():
             }
         ]}, HTTPStatus.BAD_REQUEST
 
+@jwt_required
 def patch_user(user_id):
     try:
         requesting_data = request.get_json()
