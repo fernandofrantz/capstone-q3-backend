@@ -7,6 +7,7 @@ from app.configs.database import db
 from app.models.purchases_model import PurchaseModel
 from app.models.purchases_products_model import PurchaseProductModel
 from app.services.customers_services import check_if_employee
+from app.services.pagination_services import serialize_pagination
 
 
 @jwt_required()
@@ -62,10 +63,13 @@ def get_purchases():
         check_if_employee(get_jwt_identity())
         session = db.session
         base_query = session.query(PurchaseModel)
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 3, type=int)
 
-        purchases = base_query.order_by(PurchaseModel.id).all()
+        purchases = base_query.order_by(PurchaseModel.id).paginate(page, per_page)
+        response = serialize_pagination(purchases, "purchases", "purchase_list")
 
-        return jsonify(purchases), 200
+        return jsonify(response), 200
 
     except Forbidden as e:
         return jsonify({"error": e.description}), e.code
