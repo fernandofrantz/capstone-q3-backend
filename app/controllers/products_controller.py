@@ -42,8 +42,8 @@ def create_product():
     except ValueError as error:
         return {"error": str(error)}, HTTPStatus.BAD_REQUEST
 
-    except TypeError:
-        return {"error": "description, category and name needs to be a string. price need to be a float number"}, HTTPStatus.BAD_REQUEST
+    except TypeError as err:
+        return jsonify(err.args[0]), 400
 
 def get_products():
     session = db.session
@@ -92,5 +92,5 @@ def patch_product(product_id):
     except ValueError as error:
         return {"error": str(error)}, HTTPStatus.BAD_REQUEST
 
-    except TypeError:
-        return {"error": "description, category and name needs to be a string. price need to be a float number"}, HTTPStatus.BAD_REQUEST
+    except TypeError as err:
+        return jsonify(err.args[0]), 400
