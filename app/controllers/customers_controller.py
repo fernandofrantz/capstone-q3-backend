@@ -80,7 +80,7 @@ def sign_in():
             }
         ]}, HTTPStatus.BAD_REQUEST
 
-@jwt_required
+@jwt_required()
 def patch_user(user_id):
     try:
         requesting_data = request.get_json()
@@ -96,17 +96,10 @@ def patch_user(user_id):
         }
 
         for key, value in patching_data.items():
-            if(value != None and type(value) != str):
-                raise ValueError("keys name and email only accept string values")
-
-            if(key == "email" and value != None and not re.search(".{1,}@.{1,}\..{1,}", value)):
-                raise ValueError("wrong email format, valid example: johndoe@example.wathever")
-
             if(value != None):
                 setattr(user_to_patch, key, value)
                 current_app.db.session.add(user_to_patch)
         current_app.db.session.commit()
-    
         return '', HTTPStatus.OK
             
     except KeyError as error:
