@@ -22,9 +22,9 @@ class PurchaseProductModel(db.Model):
     @validates('quantity', 'value')
     def validation(self, key, value):
         if (key == 'quantity' and type(value) != int):
-            raise BadRequest(description="All 'quantity' fields must be of the integer type")
+            raise BadRequest(description="All 'quantity' fields must be integers")
 
         if (key == 'value' and type(value) != float and type(value) != int):
-            raise BadRequest(description="All 'value' fields must be of the float type")
+            raise BadRequest(description="All 'value' fields must be floats")
 
         return value

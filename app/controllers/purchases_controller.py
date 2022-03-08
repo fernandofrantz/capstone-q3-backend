@@ -63,7 +63,7 @@ def get_purchases():
         session = db.session
         base_query = session.query(PurchaseModel)
 
-        purchases = base_query.all()
+        purchases = base_query.order_by(PurchaseModel.id).all()
 
         return jsonify(purchases), 200
 
