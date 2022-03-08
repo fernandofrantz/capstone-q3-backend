@@ -21,7 +21,7 @@ def create_purchase():
             purchase = PurchaseModel()
 
             for product in products_list:
-                PurchaseModel.get_product(product.get('product_id'))
+                PurchaseModel.check_product(product.get('product_id'))
                 product['purchase_id'] = purchase.id
 
                 purchase_product = PurchaseProductModel(**product)

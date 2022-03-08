@@ -29,7 +29,7 @@ class PurchaseModel(db.Model):
         return products_list
 
     @staticmethod
-    def get_product(product_id: int) -> ProductModel:
+    def check_product(product_id: int) -> ProductModel:
         if not product_id:
             raise BadRequest(description="Product data either missing or invalid")
 
@@ -38,8 +38,6 @@ class PurchaseModel(db.Model):
 
         if not product:
             raise NotFound(description=f"Product of id {product_id} not found")
-
-        return product
 
     @staticmethod
     def get_inventory(product_id: int) -> InventoryModel:
