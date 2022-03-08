@@ -1,10 +1,11 @@
 from dataclasses import dataclass
+
 from app.configs.database import db
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import validates
 from datetime import datetime
 from app.models.orders_products_model import orders_products
-
+from werkzeug.exceptions import BadRequestKeyError
 @dataclass
 class OrderModel(db.Model):
     __tablename__ = "orders"
@@ -20,3 +21,8 @@ class OrderModel(db.Model):
     status=Column(String,nullable=False)
 
     products = db.relationship("ProductModel", secondary=orders_products, backref="orders")
+    @validates('customer_id')
+    def validate_customer_id(self,key,value):
+        if key=='customer_id' and type(value) is not int:
+            raise BadRequestKeyError(description={'error':'customer_id must be an int'})
+        return value
