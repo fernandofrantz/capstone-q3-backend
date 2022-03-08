@@ -1,6 +1,6 @@
 from flask_sqlalchemy import Pagination
 
-def serialize_pagination(pagination: Pagination, url_route: str, data_name: str):
+def serialize_pagination(pagination: Pagination, url_route: str, list_name: str):
     base_url = f"http://127.0.0.1:5000/{url_route}"
     response = {
         "total_pages": pagination.pages,
@@ -13,6 +13,6 @@ def serialize_pagination(pagination: Pagination, url_route: str, data_name: str)
     if pagination.has_prev:
         response["prev_page"] = f"{base_url}?page={pagination.prev_num}"
 
-    response[data_name] = pagination.items
+    response[list_name] = pagination.items
 
     return response
