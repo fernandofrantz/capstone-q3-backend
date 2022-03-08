@@ -66,7 +66,7 @@ def sign_in():
             return {"api_key": access_token}, HTTPStatus.OK
 
         else:
-            return {"error": "wrong password"}, HTTPStatus.BAD_GATEWAY
+            return {"error": "login failed: e-mail or password incorrect"}, HTTPStatus.BAD_GATEWAY
     
     except KeyError:
         valid_keys = {"email": str, "password": str}
