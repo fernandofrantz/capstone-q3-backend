@@ -1,69 +1,60 @@
 from flask import jsonify, request
 from http import HTTPStatus
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from werkzeug.exceptions import Forbidden
+from werkzeug.exceptions import Forbidden, BadRequest, NotFound
 
 from app.configs.database import db
 from app.models.purchases_model import PurchaseModel
 from app.models.purchases_products_model import PurchaseProductModel
 from app.services.customers_services import check_if_employee
-from app.services.exceptions import (
-    MissingPurchaseProductsListError as MissingList,
-    InvalidPurchaseProductsListError as InvalidList,
-    EmptyPurchaseProductListError as EmptyList,
-    InvalidPurchaseProductFieldError as InvalidField,
-    PurchaseProductNotFoundError as ProductNotFound,
-    PurchaseNotFoundError as PurchaseNotFound
-)
+
 
 @jwt_required()
 def create_purchase():
     try:
-        check_if_employee(get_jwt_identity())
-        data = request.get_json()
-        session = db.session
+        try:
+            check_if_employee(get_jwt_identity())
+            data = request.get_json()
+            session = db.session
 
-        products_list = PurchaseModel.check_products_list(data['products'])
-        purchase = PurchaseModel()
+            products_list = PurchaseModel.check_products_list(data['products'])
+            purchase = PurchaseModel()
 
-        for product in products_list:
-            PurchaseModel.get_product(product.get('product_id'))
-            product['purchase_id'] = purchase.id
+            for product in products_list:
+                PurchaseModel.get_product(product.get('product_id'))
+                product['purchase_id'] = purchase.id
 
-            purchase_product = PurchaseProductModel(**product)
-            purchase.products.append(purchase_product)
+                purchase_product = PurchaseProductModel(**product)
+                purchase.products.append(purchase_product)
 
-            inventory = PurchaseModel.get_inventory(purchase_product.product_id)
-            inventory.quantity = inventory.quantity + purchase_product.quantity
-            inventory.value = inventory.value + purchase_product.value
+                inventory = PurchaseModel.get_inventory(purchase_product.product_id)
+                inventory.quantity = inventory.quantity + purchase_product.quantity
+                inventory.value = inventory.value + purchase_product.value
 
-            session.add(inventory)
+                session.add(inventory)
 
-        session.add(purchase)
-        session.commit()
+            session.add(purchase)
+            session.commit()
 
-        return jsonify(purchase), HTTPStatus.CREATED
-    
+            return jsonify(purchase), HTTPStatus.CREATED
+
+        except KeyError:
+            raise BadRequest(description="Request must contain a 'products' list")
+
+        except AttributeError:
+            raise BadRequest(description="The 'products' field must be a list")
+
+        except TypeError:
+            raise BadRequest(description="Product data either missing or invalid")
+
     except Forbidden as e:
         return jsonify({"error": e.description}), e.code
+    
+    except BadRequest as e:
+        return jsonify({"error": e.description}), e.code
 
-    except KeyError:
-        return jsonify(MissingList.response), MissingList.status_code
-
-    except AttributeError:
-        return jsonify(InvalidList.response), InvalidList.status_code
-
-    except TypeError:
-        return jsonify(InvalidField.response), InvalidField.status_code
-
-    except InvalidField as e:
-        return jsonify(e.response), e.status_code
-
-    except ProductNotFound as e:
-        return jsonify(e.response), e.status_code
-
-    except EmptyList as e:
-        return jsonify(e.response), e.status_code
+    except NotFound as e:
+        return jsonify({"error": e.description}), e.code
 
 @jwt_required()
 def get_purchases():
@@ -95,8 +86,8 @@ def get_purchase_by_id(purchase_id):
     except Forbidden as e:
         return jsonify({"error": e.description}), e.code
 
-    except PurchaseNotFound as e:
-        return jsonify(e.response), e.status_code
+    except NotFound as e:
+        return jsonify({"error": e.description}), e.code
 
 @jwt_required()
 def delete_purchase(purchase_id):
@@ -130,5 +121,5 @@ def delete_purchase(purchase_id):
     except Forbidden as e:
         return jsonify({"error": e.description}), e.code
     
-    except PurchaseNotFound as e:
-        return jsonify(e.response), e.status_code
+    except NotFound as e:
+        return jsonify({"error": e.description}), e.code
