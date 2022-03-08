@@ -231,16 +231,22 @@ Resposta:
 ## `GET/inventory`
 
 ​
-Apenas visualização do estoque (id, qtde e CMM), deve mostrar alguns apenas e aceitar query. Precisa de acesso.
+Apenas visualização do estoque (id, quantity e value), deve mostrar alguns apenas e fazer paginação. Precisa de acesso como funcionário.
 ​
 
 Resposta:
 
 ```json
 {
-    "inventory": [
-        {id, qtde, CMM}
-    ]
+  "page": int,
+  "per_page": int,
+  "data": [
+    {
+      "id": int,
+      "quantity": int,
+      "value": float
+    }
+  ]
 }
 ```
 
@@ -249,44 +255,56 @@ Resposta:
 ## `GET/inventory/id`
 
 ​
-Visualiza estoque de um produto específico. Precisa de acesso.
+Visualiza estoque de um produto específico. Precisa de acesso como funcionário.
 ​
 
 Resposta:
 
 ```json
+
 {
-    "id": int,
-    "qtde": int,
-    "cmm": int
+  "inventory": [
+    {
+      "id": int,
+      "quantity": int,
+      "value": float
+    }
+  ]
 }
 ```
 
 ## `PATCH/inventory/id`
 
 ​
-Visualiza estoque de um produto específico. Precisa de acesso.
+Visualiza estoque de um produto específico. Precisa de acesso como funcionário.
 ​
 
 Resposta:
 
 ```json
 {
-    "id": int,
-    "qtde": int,
-    "cmm": int
+  "id": int,
+  "qtde": int,
+  "value": floar
 }
 ```
 
 ## `DELETE/inventory/id`
 
 ​
-Deleta estoque de um produto específico. Precisa de acesso.
+Zera o estoque de um produto específico. Precisa de acesso como funcionário.
 ​
 
 Resposta:
 
-`no content, 200 OK`
+```json
+{
+  "id": int,
+  "qtde": 0,
+  "value": 0
+}
+```
+
 ​
 
 ### VENDAS
