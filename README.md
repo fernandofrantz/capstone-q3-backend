@@ -184,7 +184,7 @@ Resposta:
 
 ```json
 {
-    "categories": [
+    "category": [
         {id, nome}
     ]
 }
@@ -202,7 +202,7 @@ Resposta:
 
 ```json
 {
-    "nome_da_categoria": [
+    "category_name": [
         {Products}
     ]
 }
@@ -218,7 +218,7 @@ Resposta:
 
 ```json
 {
-    "nome_da_categoria": [
+    "category_name": [
         {Products}
     ]
 }
