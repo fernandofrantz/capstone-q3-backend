@@ -65,8 +65,16 @@ def patch_product(product_id):
         data = request.get_json()
         product = ProductModel.query.get_or_404(product_id)
 
-        valid_keys = ["name", "category_id", "description", "price"]
+        valid_keys = ["name", "category", "description", "price"]
         check_valid_patch(data, valid_keys)
+
+        category = CategoryModel.query.filter_by(name=data["category"]).first()
+        if category == None:
+            category = CategoryModel(**{"name":data["category"]})
+            current_app.db.session.add(category)
+            current_app.db.session.commit()
+        data["category_id"] = category.id
+        del data["category"]
 
         for key, name in data.items():
             setattr(product, key, name)

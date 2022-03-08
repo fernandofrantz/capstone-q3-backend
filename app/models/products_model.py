@@ -33,6 +33,6 @@ class ProductModel(db.Model):
 
     @validates("price")
     def validates_product_float_data(self, key, value):
-        if (type(value) != float):
+        if (type(value) != float) and (type(value) != int):
             raise TypeError(f'key {key} recieved a {type(value).__name__}, but in price was expecting float')
         return value
