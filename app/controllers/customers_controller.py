@@ -47,7 +47,7 @@ def sign_up():
         return {"conflict": "email already registered"}, HTTPStatus.CONFLICT
 
 def sign_in():
-    try:    
+    try:
         login_data = request.get_json()
 
         verify_email = login_data['email']

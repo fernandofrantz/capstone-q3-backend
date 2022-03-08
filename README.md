@@ -428,7 +428,7 @@ E-MAIL
 
 ​
 
-## `POST/purchase`
+## `POST/purchases`
 
 ​
 Compra de novos produtos para estoque. Precisa de acesso.
@@ -438,9 +438,13 @@ Requisição:
 
 ```json
 {
-    "products": [
-        {id, qtde, valor_custo}
-    ]
+  "products": [
+    {
+      "product_id": integer,
+	  "quantity": integer,
+	  "value": float
+	}
+  ]
 }
 ```
 
@@ -449,10 +453,15 @@ Resposta:
 
 ```json
 {
-    "products": [
-        {id, qtde, valor_custo}
-    ],
-    "total": float
+  "id": integer,
+  "date": string,
+  "products": [
+    {
+      "product_id": integer,
+      "quantity": integer,
+      "value": float
+    }
+  ]
 }
 ```
 
@@ -461,71 +470,62 @@ Resposta:
 - Erro: necessário produto já ter cadastro para ser comprado
   ​
 
-## `GET/purchase/id`
+## `GET/purchases`
 
 ​
-Mostra informações do pedido de compra para estoque. Precisa de acesso.
+Mostra todos os pedidos de compra para estoque. Precisa de acesso.
 
 ​
 Resposta:
 
 ```json
-{
-    "order": [
-        {id, qtde}
-    ],
-    "total": float
-}
-```
-
-​
-
-## `PATCH/purchase/id`
-
-​
-Atualização informações do pedido de compra para estoque. Precisa de acesso.
-
-​
-Requisição:
-
-```json
-{
-    "order": [
-        {id, qtde}
+[
+  {
+    "id": integer,
+    "date": string,
+    "products": [
+      {
+        "product_id": integer,
+        "quantity": integer,
+        "value": float
+      }
     ]
-}
+  }
+]
 ```
+
+​
+
+## `GET/purchases/id`
+
+​
+Mostra informações de um pedido de compra específico. Precisa de acesso.
 
 ​
 Resposta:
 
 ```json
 {
-    "order": [
-        {id, qtde}
-    ],
-    "total": float
+  "id": integer,
+  "date": string,
+  "products": [
+    {
+      "product_id": integer,
+      "quantity": integer,
+      "value": float
+    }
+  ]
 }
 ```
 
-- Deve atualizar a quantidade do produto no estoque
-- Deve atualizar o custo de produto em estoque (média)
+​
 
-## `DELETE/purchase/id`​
+## `DELETE/purchases/id`​
 
 Remoção do pedido de compra para estoque. Precisa de acesso.
 
 ​
-Resposta:
-
-```json
-{
-    "order": [
-        {id, qtde}
-    ],
-    "total": float
-}
-```
+Sem Resposta
 
 - Deve atualizar a quantidade do produto no estoque
 - Deve atualizar o custo de produto em estoque (média)
