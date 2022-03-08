@@ -34,8 +34,9 @@ Response:
 
 ```json
 {
-    "name": str,
-    "email": str,
+  "id": int,
+  "name": str,
+  "email": str
 }
 ```
 
@@ -61,11 +62,28 @@ Resposta:
 
 ```json
 {
-    "access_token": str
+    "api_key": str
+}
+```
+
+## `PATCH/user/<user_id>`
+
+​
+Atualização do cliente.
+
+Requisição:
+
+```json
+{
+    "name": str,
+    "email": str
 }
 ```
 
 ​
+Resposta:
+
+`No body returned for response, 200 OK`
 
 # PRODUTOS
 
