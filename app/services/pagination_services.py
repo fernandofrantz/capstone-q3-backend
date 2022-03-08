@@ -1,5 +1,6 @@
 from flask_sqlalchemy import Pagination
 
+
 def serialize_pagination(pagination: Pagination, url_route: str, list_name: str):
     base_url = f"http://127.0.0.1:5000/{url_route}"
     response = {

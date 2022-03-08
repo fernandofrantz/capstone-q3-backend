@@ -69,10 +69,13 @@ def get_purchases():
         purchases = base_query.order_by(PurchaseModel.id).paginate(page, per_page)
         response = serialize_pagination(purchases, "purchases", "purchase_list")
 
-        return jsonify(response), 200
+        return jsonify(response), HTTPStatus.OK
 
     except Forbidden as e:
         return jsonify({"error": e.description}), e.code
+
+    except NotFound:
+        return jsonify({"error": "Page not found"}), HTTPStatus.NOT_FOUND
 
 @jwt_required()
 def get_purchase_by_id(purchase_id):
@@ -85,7 +88,7 @@ def get_purchase_by_id(purchase_id):
 
         PurchaseModel.check_purchase(purchase)
 
-        return jsonify(purchase), 200
+        return jsonify(purchase), HTTPStatus.OK
 
     except Forbidden as e:
         return jsonify({"error": e.description}), e.code
@@ -120,7 +123,7 @@ def delete_purchase(purchase_id):
         session.delete(purchase)
         session.commit()
 
-        return '', 204
+        return '', HTTPStatus.NO_CONTENT
 
     except Forbidden as e:
         return jsonify({"error": e.description}), e.code
