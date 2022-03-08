@@ -1,8 +1,8 @@
-from dataclasses import dataclass
+from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import validates
 from app.configs.database import db
-from sqlalchemy import Column, Integer, String, Boolean
-from werkzeug.security import generate_password_hash, check_password_hash
+from dataclasses import dataclass
 import re
 
 @dataclass

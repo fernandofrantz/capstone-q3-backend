@@ -1,9 +1,10 @@
-from flask import current_app, jsonify, request
+from app.services.validations import check_valid_patch
 from app.models.customers_model import CustomerModel
-from http import HTTPStatus
 from flask_jwt_extended import create_access_token
-
+from flask import current_app, jsonify, request
 from sqlalchemy.exc import IntegrityError
+from http import HTTPStatus
+import re
 
 def sign_up():
     try:
@@ -56,7 +57,7 @@ def sign_in():
         found_user = CustomerModel.query.filter(CustomerModel.email == login_data['email']).first()
 
         if not found_user:
-            return {"message": "user not found"}, HTTPStatus.NOT_FOUND
+            return {"error": "user not found"}, HTTPStatus.NOT_FOUND
 
         if (found_user.verify_password(login_data['password'])):
 
@@ -65,7 +66,7 @@ def sign_in():
             return {"api_key": access_token}, HTTPStatus.OK
 
         else:
-            return {"message": "wrong password"}, HTTPStatus.BAD_GATEWAY
+            return {"error": "wrong password"}, HTTPStatus.BAD_GATEWAY
     
     except KeyError:
         valid_keys = {"email": str, "password": str}
@@ -77,3 +78,37 @@ def sign_in():
                 list(valid_keys.keys())
             }
         ]}, HTTPStatus.BAD_REQUEST
+
+def patch_user(user_id):
+    try:
+        requesting_data = request.get_json()
+
+        user_to_patch = CustomerModel.query.filter(CustomerModel.id == user_id).first()
+
+        valid_keys = ["name", "email"]
+        check_valid_patch(requesting_data, valid_keys)
+    
+        patching_data = {
+            "name": requesting_data.get('name'),
+            "email": requesting_data.get('email')
+        }
+
+        for key, value in patching_data.items():
+            if(value != None and type(value) != str):
+                raise ValueError("keys name and email only accept string values")
+
+            if(key == "email" and value != None and not re.search(".{1,}@.{1,}\..{1,}", value)):
+                raise ValueError("wrong email format, valid example: johndoe@example.wathever")
+
+            if(value != None):
+                setattr(user_to_patch, key, value)
+                current_app.db.session.add(user_to_patch)
+        current_app.db.session.commit()
+    
+        return '', HTTPStatus.OK
+            
+    except KeyError as error:
+        return jsonify(error.args[0]), HTTPStatus.BAD_REQUEST
+
+    except ValueError as error:
+        return {"error": str(error)}, HTTPStatus.BAD_REQUEST
