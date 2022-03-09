@@ -49,13 +49,13 @@ def create_purchase():
             raise BadRequest(description="product data either missing or invalid")
 
     except Forbidden as e:
-        return jsonify({"error": e.description}), e.code
+        return jsonify({"msg": e.description}), e.code
     
     except BadRequest as e:
-        return jsonify({"error": e.description}), e.code
+        return jsonify({"msg": e.description}), e.code
 
     except NotFound as e:
-        return jsonify({"error": e.description}), e.code
+        return jsonify({"msg": e.description}), e.code
 
 @jwt_required()
 def get_purchases():
@@ -67,15 +67,15 @@ def get_purchases():
         per_page = request.args.get("per_page", 3, type=int)
 
         purchases = base_query.order_by(PurchaseModel.id).paginate(page, per_page)
-        response = serialize_pagination(purchases, "purchases", "purchase_list")
+        response = serialize_pagination(purchases, "purchases")
 
-        return jsonify({"purchases": response}), HTTPStatus.OK
+        return jsonify(response), HTTPStatus.OK
 
     except Forbidden as e:
-        return jsonify({"error": e.description}), e.code
+        return jsonify({"msg": e.description}), e.code
 
     except NotFound:
-        return jsonify({"error": "page not found"}), HTTPStatus.NOT_FOUND
+        return jsonify({"msg": "page not found"}), HTTPStatus.NOT_FOUND
 
 @jwt_required()
 def get_purchase_by_id(purchase_id):
@@ -91,10 +91,10 @@ def get_purchase_by_id(purchase_id):
         return jsonify(purchase), HTTPStatus.OK
 
     except Forbidden as e:
-        return jsonify({"error": e.description}), e.code
+        return jsonify({"msg": e.description}), e.code
 
     except NotFound as e:
-        return jsonify({"error": e.description}), e.code
+        return jsonify({"msg": e.description}), e.code
 
 @jwt_required()
 def delete_purchase(purchase_id):
@@ -126,7 +126,7 @@ def delete_purchase(purchase_id):
         return '', HTTPStatus.NO_CONTENT
 
     except Forbidden as e:
-        return jsonify({"error": e.description}), e.code
+        return jsonify({"msg": e.description}), e.code
     
     except NotFound as e:
-        return jsonify({"error": e.description}), e.code
+        return jsonify({"msg": e.description}), e.code

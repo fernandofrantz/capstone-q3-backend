@@ -53,4 +53,4 @@ def patch_category(category_id:int):
             return jsonify(err.args[0]),HTTPStatus.BAD_REQUEST
 
         return jsonify(category_filtred),HTTPStatus.OK
-    return {'msg':'unauthorized user'},HTTPStatus.UNAUTHORIZED
+    return {'msg':'access denied'},HTTPStatus.FORBIDDEN

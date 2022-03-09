@@ -2,7 +2,9 @@ from flask import jsonify, request, current_app
 from http import HTTPStatus
 from app.configs.database import db
 from sqlalchemy.exc import IntegrityError
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import NotFound, Forbidden
+from app.services.customers_services import check_if_employee
+from app.services.pagination_services import serialize_pagination
 from app.services.validations import check_valid_patch
 from app.models.products_model import ProductModel
 from app.models.inventory_model import InventoryModel
@@ -13,10 +15,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 @jwt_required()
 def create_product():
-    user_identity = get_jwt_identity()
-    if not CustomerModel.query.get(user_identity.get('id')).employee:
-        return {"msg": "unauthorized"}, 401
     try:
+        check_if_employee(get_jwt_identity())
         data = request.get_json()
 
         valid_keys = ["name", "category", "description", "price"]
@@ -37,7 +37,10 @@ def create_product():
 
         current_app.db.session.commit()
         return jsonify(new_product), HTTPStatus.OK
-        
+    
+    except Forbidden as e:
+        return jsonify({"msg": e.description}), e.code
+
     except KeyError:
         return {"required_keys": ["name", "price", "description", "category"], "recieved_keys": list(data.keys())}, HTTPStatus.BAD_REQUEST
 
@@ -48,12 +51,19 @@ def create_product():
         return jsonify(err.args[0]), 400
 
 def get_products():
-    session = db.session
-    base_query = session.query(ProductModel)
+    try:
+        session = db.session
+        base_query = session.query(ProductModel)
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 5, type=int)
 
-    products = base_query.all()
+        products = base_query.order_by(ProductModel.id).paginate(page, per_page)
+        response = serialize_pagination(products, "products")
 
-    return jsonify({"products": products}), HTTPStatus.OK
+        return jsonify(response), HTTPStatus.OK
+
+    except NotFound:
+        return jsonify({"msg": "page not found"}), HTTPStatus.NOT_FOUND
 
 def get_product_by_id(product_id):
     try:
@@ -64,10 +74,8 @@ def get_product_by_id(product_id):
 
 @jwt_required()
 def patch_product(product_id):
-    user_identity = get_jwt_identity()
-    if not CustomerModel.query.get(user_identity.get('id')).employee:
-        return {"msg": "unauthorized"}, 401
     try:
+        check_if_employee(get_jwt_identity())
         data = request.get_json()
         product = ProductModel.query.get_or_404(product_id)
 
@@ -95,8 +103,12 @@ def patch_product(product_id):
 
         return jsonify(product), HTTPStatus.OK
 
+    except Forbidden as e:
+        return jsonify({"msg": e.description}), e.code
+
     except NotFound:
         return {"error": f"product id {product_id} not found"}, HTTPStatus.NOT_FOUND
+
     except KeyError as err:
         return jsonify(err.args[0]), HTTPStatus.BAD_REQUEST
 

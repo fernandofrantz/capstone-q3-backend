@@ -7,4 +7,4 @@ from app.models.customers_model import CustomerModel
 def check_if_employee(identity):
     customer = db.session.query(CustomerModel).get(identity.get('id'))
     if not customer.employee:
-        raise Forbidden(description="Access denied")
+        raise Forbidden(description="access denied")

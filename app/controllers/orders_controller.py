@@ -9,6 +9,8 @@ from sqlalchemy import update,select
 from werkzeug.exceptions import NotFound,BadRequestKeyError
 from http import HTTPStatus
 from flask_jwt_extended import jwt_required,get_jwt_identity
+
+from app.services.pagination_services import serialize_pagination
 @jwt_required()
 def create_order():
     customer=get_jwt_identity()
@@ -20,7 +22,7 @@ def create_order():
     products_data=data['order']
     customer_id=customer['id']
     try:
-        customer=CustomerModel.query.get_or_404(customer['id'],description={'error':f'customer id {customer["id"]} not found'})
+        customer=CustomerModel.query.get_or_404(customer['id'],description={'msg':f'customer id {customer["id"]} not found'})
     except NotFound as e:
         return jsonify(e.description),HTTPStatus.NOT_FOUND
     try:
@@ -34,15 +36,15 @@ def create_order():
             if set(default_keys_product)!=set(list(product.keys())):
                 return jsonify({'required_keys':default_keys_product,'recieved_keys':[keys for keys in product.keys()]})
             if type(product['id']) is not int or type(product['quantity']) is not int:
-                return jsonify({'error':f'id or quantity is not int'}),HTTPStatus.BAD_REQUEST
+                return jsonify({'msg':f'id or quantity is not int'}),HTTPStatus.BAD_REQUEST
             if not (product['quantity']>0):
-                return jsonify({'error':f'product id {product["id"]} is not available'})
-            aux=ProductModel.query.get_or_404(product['id'],description={'error':f'product id {product["id"]} not found'})
+                return jsonify({'msg':f'product id {product["id"]} is not available'})
+            aux=ProductModel.query.get_or_404(product['id'],description={'msg':f'product id {product["id"]} not found'})
             inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description=f'product id {product["id"]} not found')
         except NotFound as e:
             return jsonify(e.description),HTTPStatus.NOT_FOUND
         if inventory.quantity <product['quantity']:
-            return {'error':f'product id {aux.id} is not available'},HTTPStatus.INSUFFICIENT_STORAGE
+            return {'msg':f'product id {aux.id} is not available'},HTTPStatus.INSUFFICIENT_STORAGE
         cost=inventory.value/inventory.quantity
         inventory.quantity-=product['quantity']
         inventory.value-=cost*product['quantity']
@@ -65,28 +67,33 @@ def create_order():
                     'products':[x for x in order.products]}),201
 @jwt_required()
 def get_orders():
-    user_identity = get_jwt_identity()
-    if not CustomerModel.query.get(user_identity.get('id')).employee:
-        return {"msg": "Unauthorized"}, 401
-    page=request.args.get("page",type=int)
-    per_page=request.args.get("per_page",type=int)
-    print(per_page)
-    if not page:
-        page=1
-    if not per_page:
-        per_page=3
-    data=OrderModel.query.order_by(OrderModel.id).paginate(page, per_page)
-    return jsonify({"orders": data.items}), 200
+    try:
+        user_identity = get_jwt_identity()
+        if not CustomerModel.query.get(user_identity.get('id')).employee:
+            return {"msg": "access denied"}, 403
+        page=request.args.get("page",type=int)
+        per_page=request.args.get("per_page",type=int)
+        print(per_page)
+        if not page:
+            page=1
+        if not per_page:
+            per_page=3
+        data=OrderModel.query.order_by(OrderModel.id).paginate(page, per_page)
+        response = serialize_pagination(data, "orders")
+        return jsonify(response), 200
+
+    except NotFound:
+        return jsonify({"msg": "page not found"}), HTTPStatus.NOT_FOUND
     
 @jwt_required()
 def get_order_by_id(order_id):
     user_identity = get_jwt_identity()
     try:
-        order=OrderModel.query.get_or_404(order_id,description={'error':f'id:{order_id} NOT FOUND'})
+        order=OrderModel.query.get_or_404(order_id,description={'msg':f'id:{order_id} NOT FOUND'})
     except NotFound as e:
         return jsonify(e.description),HTTPStatus.NOT_FOUND
     if not (CustomerModel.query.get(user_identity.get('id')).employee) and (order.customer_id!=user_identity.get('id')):
-        return {"msg": "unauthorized"}, 401
+        return {"msg": "access denied"}, 403
     
     query_order_products=select(orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order.id)
     orders_products_infos=db.session.execute(query_order_products).all()
@@ -116,32 +123,32 @@ def patch_product(order_id):
     id_data=[product['id'] for product in data.get('products', [])]
     if not (set(id_data).issubset(execute_id)):
         error_id=set(id_data)-set(execute_id)
-        return jsonify({'error':f'products id {list(error_id)} invalids'})
+        return jsonify({'msg':f'products id {list(error_id)} invalids'})
     total=0
     quantity_total=0
     try:
-        order=OrderModel.query.get_or_404(order_id,description={'error':f'id:{order_id} NOT FOUND'})
+        order=OrderModel.query.get_or_404(order_id,description={'msg':f'id:{order_id} NOT FOUND'})
         if not (CustomerModel.query.get(user_identity.get('id')).employee) and (order.customer_id!=user_identity.get('id')):
-            return {"msg": "Unauthorized"}, 401
+            return {"msg": "access denied"}, 403
         if order.status=='deleted':
-            return jsonify({'error':'order already deleted.'})
+            return jsonify({'msg':'order already deleted.'})
         if (data.get('products')):
             order_infos=db.session.execute(query_select_quantity).all()
             for infos in order_infos:
                 for product in sorted(data['products'], key=lambda k: k['id']):
                     if infos[1]==product['id']:
                         if not (product.get('id')) or not (product.get('quantity')):
-                            return jsonify({'error':'id or quantity not informed'}),HTTPStatus.BAD_REQUEST
+                            return jsonify({'msg':'id or quantity not informed'}),HTTPStatus.BAD_REQUEST
                         if  type(product['id']) is not int  or type(product['quantity']) is not int:
-                            return jsonify({'error':'id or quantity is not int'}),HTTPStatus.BAD_REQUEST
+                            return jsonify({'msg':'id or quantity is not int'}),HTTPStatus.BAD_REQUEST
                         dict_values={'quantity':product['quantity']}
                         query_order=(update(orders_products).where(orders_products.c.id==infos[0]).values(dict_values))
                         db.session.execute(query_order)
-                        inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description={'error':f'product_id:{product["id"]} NOT FOUND'})
+                        inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description={'msg':f'product_id:{product["id"]} NOT FOUND'})
                         # inventory.quantity+=infos[2]
                         # inventory.value+=infos[4]
                         if(inventory.quantity<(product['quantity']-infos[2])) or inventory.quantity == 0:
-                            return {'error':f'product It unavailable'},HTTPStatus.INSUFFICIENT_STORAGE
+                            return {'msg':f'product It unavailable'},HTTPStatus.INSUFFICIENT_STORAGE
                         cost=inventory.value/inventory.quantity
                         inventory.value+=(cost*(infos[2]-product['quantity']))
                         inventory.quantity-=product['quantity']-infos[2]
@@ -149,7 +156,7 @@ def patch_product(order_id):
         if data.get('status'):
 
             if not(data['status'].lower() in default_status):
-                return jsonify({'error':'invalid status, valid patch status: active, complete'}),HTTPStatus.BAD_REQUEST
+                return jsonify({'msg':'invalid status, valid patch status: active, complete'}),HTTPStatus.BAD_REQUEST
             order.status=data['status'].lower()
             db.session.add(order)
             db.session.commit()
@@ -170,15 +177,15 @@ def patch_product(order_id):
 def delete_product(order_id):
     user_identity = get_jwt_identity()
     try:
-        order=OrderModel.query.get_or_404(order_id,description={'error':f'order id {order_id} not found'})
+        order=OrderModel.query.get_or_404(order_id,description={'msg':f'order id {order_id} not found'})
         if not (CustomerModel.query.get(user_identity.get('id')).employee) and (order.customer_id!=user_identity.get('id')):
-            return {"msg": "unauthorized"}, 401
+            return {"msg": "access denied"}, 403
     except NotFound as e:
         return jsonify(e.description)
     query_select_quantity=select(orders_products.c.id,orders_products.c.product_id,orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order_id).order_by(orders_products.c.id)
     order_infos=db.session.execute(query_select_quantity).all()
     for infos in order_infos:
-        inventory=InventoryModel.query.filter_by(product_id=infos[1]).first_or_404(description={'error':f'product_id:{infos[1]} NOT FOUND'})
+        inventory=InventoryModel.query.filter_by(product_id=infos[1]).first_or_404(description={'msg':f'product_id:{infos[1]} NOT FOUND'})
         inventory.quantity+=infos[2]
         inventory.value+=infos[4]
     order.status='deleted'
