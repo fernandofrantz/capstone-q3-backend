@@ -19,7 +19,7 @@ class CategoryModel(db.Model):
     def validate_fildes(self,_,value):
         if not type(value) == str:
             raise TypeError({
-                "error": f"expected name to be: str, instead got: {type(value).__name__}"
+                "msg": f"expected name to be: str, instead got: {type(value).__name__}"
                 })
         return value.lower()
 

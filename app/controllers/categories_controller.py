@@ -16,7 +16,7 @@ def get_categories():
 def get_category_by_id(category_id:int):
     category_filtred:CategoryModel = CategoryModel.query.get(category_id)
     if not category_filtred:
-        return {'error': f'category {category_id} not found'},HTTPStatus.NOT_FOUND
+        return {'msg': f'category {category_id} not found'},HTTPStatus.NOT_FOUND
     products_filtred_by_category:list[ProductModel] = ProductModel.query.filter_by(category_id=category_id).order_by(ProductModel.id).all()
 
     return category_filtred.serializer(products_filtred_by_category),HTTPStatus.OK
@@ -33,7 +33,7 @@ def patch_category(category_id:int):
         category_filtred:CategoryModel = CategoryModel.query.get(category_id)
 
         if not category_filtred:
-            return {'error':'category not found'},HTTPStatus.NOT_FOUND
+            return {'msg':'category not found'},HTTPStatus.NOT_FOUND
 
         try:
             valid_keys = ['name']
@@ -48,7 +48,7 @@ def patch_category(category_id:int):
         except TypeError as err:
             return jsonify(err.args[0]), HTTPStatus.BAD_REQUEST
         except IntegrityError:
-            return {'error':'category name already exists'},HTTPStatus.CONFLICT
+            return {'msg':'category name already exists'},HTTPStatus.CONFLICT
         except KeyError as err:
             return jsonify(err.args[0]),HTTPStatus.BAD_REQUEST
 

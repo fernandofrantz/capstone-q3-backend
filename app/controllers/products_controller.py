@@ -45,7 +45,7 @@ def create_product():
         return {"required_keys": ["name", "price", "description", "category"], "recieved_keys": list(data.keys())}, HTTPStatus.BAD_REQUEST
 
     except ValueError as error:
-        return {"error": str(error)}, HTTPStatus.BAD_REQUEST
+        return {"msg": str(error)}, HTTPStatus.BAD_REQUEST
 
     except TypeError as err:
         return jsonify(err.args[0]), 400
@@ -107,13 +107,13 @@ def patch_product(product_id):
         return jsonify({"msg": e.description}), e.code
 
     except NotFound:
-        return {"error": f"product id {product_id} not found"}, HTTPStatus.NOT_FOUND
+        return {"msg": f"product id {product_id} not found"}, HTTPStatus.NOT_FOUND
 
     except KeyError as err:
         return jsonify(err.args[0]), HTTPStatus.BAD_REQUEST
 
     except ValueError as error:
-        return {"error": str(error)}, HTTPStatus.BAD_REQUEST
+        return {"msg": str(error)}, HTTPStatus.BAD_REQUEST
 
     except TypeError as err:
-        return jsonify({"error": err.args[0]}), 400
+        return jsonify({"msg": err.args[0]}), 400

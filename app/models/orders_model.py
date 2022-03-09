@@ -24,5 +24,5 @@ class OrderModel(db.Model):
     @validates('customer_id')
     def validate_customer_id(self,key,value):
         if key=='customer_id' and type(value) is not int:
-            raise BadRequestKeyError(description={'error':f'expected customer_id to be: int, instead got: {type(value).__name__}'})
+            raise BadRequestKeyError(description={'msg':f'expected customer_id to be: int, instead got: {type(value).__name__}'})
         return value

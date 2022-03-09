@@ -39,13 +39,13 @@ def sign_up():
         }, HTTPStatus.BAD_REQUEST
 
     except ValueError as error:
-        return {"error": str(error)}, HTTPStatus.BAD_REQUEST
+        return {"msg": str(error)}, HTTPStatus.BAD_REQUEST
 
     except TypeError as err:
-        return jsonify({"error": err.args[0]}), HTTPStatus.BAD_REQUEST
+        return jsonify({"msg": err.args[0]}), HTTPStatus.BAD_REQUEST
 
     except IntegrityError:
-        return {"error": "email already registered"}, HTTPStatus.CONFLICT
+        return {"msg": "email already registered"}, HTTPStatus.CONFLICT
 
 def sign_in():
     try:
@@ -57,7 +57,7 @@ def sign_in():
         found_user = CustomerModel.query.filter(CustomerModel.email == login_data['email']).first()
 
         if not found_user:
-            return {"error": "user not found"}, HTTPStatus.NOT_FOUND
+            return {"msg": "user not found"}, HTTPStatus.NOT_FOUND
 
         if (found_user.verify_password(login_data['password'])):
 
@@ -67,7 +67,7 @@ def sign_in():
             return {"api_key": access_token}, HTTPStatus.OK
 
         else:
-            return {"error": "login failed, incorrect e-mail or password"}, HTTPStatus.BAD_GATEWAY
+            return {"msg": "login failed, incorrect e-mail or password"}, HTTPStatus.BAD_GATEWAY
     
     except KeyError:
         valid_keys = {"email": str, "password": str}
@@ -104,4 +104,4 @@ def patch_user(user_id):
         return jsonify(error.args[0]), HTTPStatus.BAD_REQUEST
 
     except ValueError as error:
-        return {"error": str(error)}, HTTPStatus.BAD_REQUEST
+        return {"msg": str(error)}, HTTPStatus.BAD_REQUEST
