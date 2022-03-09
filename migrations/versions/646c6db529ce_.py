@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 456f2675e02c
+Revision ID: 646c6db529ce
 Revises: 
-Create Date: 2022-03-07 14:36:32.252527
+Create Date: 2022-03-09 12:06:05.958757
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '456f2675e02c'
+revision = '646c6db529ce'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -43,6 +43,7 @@ def upgrade():
     sa.Column('customer_id', sa.Integer(), nullable=False),
     sa.Column('order_date', sa.DateTime(), nullable=False),
     sa.Column('discount', sa.String(), nullable=True),
+    sa.Column('status', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['customer_id'], ['customers.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -57,7 +58,7 @@ def upgrade():
     )
     op.create_table('inventory',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('value', sa.Integer(), nullable=False),
+    sa.Column('value', sa.Float(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
@@ -65,6 +66,10 @@ def upgrade():
     )
     op.create_table('orders_products',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('quantity', sa.Integer(), nullable=True),
+    sa.Column('price', sa.Float(), nullable=True),
+    sa.Column('cost', sa.Float(), nullable=True),
+    sa.Column('quantity_per_product', sa.ARRAY(sa.Integer()), nullable=True),
     sa.Column('order_id', sa.Integer(), nullable=True),
     sa.Column('product_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['order_id'], ['orders.id'], ),
@@ -75,6 +80,8 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('purchase_id', sa.Integer(), nullable=True),
     sa.Column('product_id', sa.Integer(), nullable=True),
+    sa.Column('quantity', sa.Integer(), nullable=False),
+    sa.Column('value', sa.Float(), nullable=False),
     sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
     sa.ForeignKeyConstraint(['purchase_id'], ['purchases.id'], ),
     sa.PrimaryKeyConstraint('id')
