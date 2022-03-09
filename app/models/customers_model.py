@@ -1,10 +1,9 @@
-from dataclasses import dataclass
+from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import validates
 from app.configs.database import db
-from sqlalchemy import Column, Integer, String, Boolean
-from werkzeug.security import generate_password_hash, check_password_hash
-
-from app.services.exceptions import ErrorCustomerValue
+from dataclasses import dataclass
+import re
 
 @dataclass
 class CustomerModel(db.Model):
@@ -38,23 +37,14 @@ class CustomerModel(db.Model):
     def verify_password(self, password_to_compare):
         return check_password_hash(self.password_hash, str(password_to_compare))
 
-    @validates("name", "email", "employee")
-    def validates(self, key, value):
-        
-        if (key == "name" and type(value) != str):
-            raise ErrorCustomerValue("The key name just accept string values")
+    @validates("name", "password")
+    def validates_user_data(self, key, value):
+        if (type(value) != str):
+            raise TypeError(f'expected {key} to be: str, instead got: {type(value).__name__}')
+        return value
 
-        if (key == "email" and type(value) != str):
-            raise ErrorCustomerValue("The key email just accept string values")
-
-        if (key == "email" and type(value) == str):
-            if(len(value.split('@')) != 2):
-                raise ErrorCustomerValue("Invalid email, correct format example: johndoe@email.wathever")
-        
-        if  (key == 'employee' and type(value) != bool):
-            raise ErrorCustomerValue("Key employee just accept boolean values")
-
-        if (type(value) == bool and key != "employee"):
-            raise ErrorCustomerValue("Key for boolean value must be 'employee'")
-
+    @validates("email")
+    def validates_email(self, key, value):
+        if not re.search(".{1,}@.{1,}\..{1,}", value):
+            raise ValueError("wrong email format, valid example: johndoe@example.wathever")
         return value

@@ -1,6 +1,11 @@
 class ErrorCustomerValue(Exception):
     pass
 
+class IdProductNotFoundError(Exception):
+    status_code = 404
+    def __init__(self, product_id):
+        self.response = {"error": f"Product of id {product_id} not found"}
+        
 class MissingPurchaseProductsListError(Exception):
     status_code = 400
     response = {"error": "Request must contain a 'products' list"}

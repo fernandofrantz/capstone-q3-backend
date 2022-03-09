@@ -2,10 +2,7 @@ from dataclasses import dataclass
 from app.configs.database import db
 from sqlalchemy import Column, Float, Integer, ForeignKey
 from sqlalchemy.orm import validates
-
-from app.services.exceptions import (
-    InvalidPurchaseProductFieldError as InvalidField
-)
+from werkzeug.exceptions import BadRequest
 
 
 @dataclass
@@ -25,9 +22,9 @@ class PurchaseProductModel(db.Model):
     @validates('quantity', 'value')
     def validation(self, key, value):
         if (key == 'quantity' and type(value) != int):
-            raise InvalidField
+            raise BadRequest(description=f"expected quantity to be: int, instead got: {type(value).__name__}")
 
-        if (key == 'value' and type(value) != float):
-            raise InvalidField
+        if (key == 'value' and type(value) != float and type(value) != int):
+            raise BadRequest(description=f"expected value to be: float, instead got: {type(value).__name__}")
 
         return value

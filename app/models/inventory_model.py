@@ -27,6 +27,6 @@ class InventoryModel(db.Model):
             return value
         else:
             raise TypeError({
-                "message": f"expected {key} to be: {self.valid_inputs.get(key).__name__}, instead got: {type(value).__name__}"
+                "msg": f"expected {key} to be: {self.valid_inputs.get(key).__name__}, instead got: {type(value).__name__}"
                 })
     

@@ -34,8 +34,9 @@ Response:
 
 ```json
 {
-    "name": str,
-    "email": str,
+  "id": int,
+  "name": str,
+  "email": str
 }
 ```
 
@@ -61,11 +62,28 @@ Resposta:
 
 ```json
 {
-    "access_token": str
+    "api_key": str
+}
+```
+
+## `PATCH/user/<user_id>`
+
+​
+Atualização do cliente.
+
+Requisição:
+
+```json
+{
+    "name": str,
+    "email": str
 }
 ```
 
 ​
+Resposta:
+
+`No body returned for response, 200 OK`
 
 # PRODUTOS
 
@@ -89,6 +107,24 @@ Resposta:
 
 ​
 
+## `GET/products/{id}`
+
+​
+Lista apenas alguns produtos, deve aceitar queries de page `"?page=2&per_page=4"` e de categorias (filtrar por uma apenas)
+​
+
+Resposta:
+
+```json
+{
+  "id": int,
+  "name": str,
+  "price": float,
+  "category_id": int,
+  "description": str
+}
+```
+
 ## `POST/products`
 
 ​
@@ -101,7 +137,8 @@ Requisição:
 {
     "name": str,
     "category": str,
-    "price": str
+    "price": float,
+    "description": str
 }
 ```
 
@@ -112,8 +149,9 @@ Resposta:
 {
     "id": int,
     "name": str,
-    "category": str,
-    "price": str
+    "category_id": int,
+    "price": float,
+    "description": str
 }
 ```
 
@@ -132,8 +170,9 @@ Requisição:
 ```json
 {
     "name": str,
-    "category": str,
-    "price": str
+    "category_id": int,
+    "price": str,
+    "description": str
 }
 ```
 
@@ -142,33 +181,15 @@ Resposta:
 
 ```json
 {
-    "id": int,
-    "name": str,
-    "category": str,
-    "price": str
+  "id": int,
+  "name": str,
+  "price": float,
+  "category_id": int,
+  "description": str
 }
 ```
 
 - Registra a categoria caso ela ainda não exista.
-
-## `DELETE/products/id`
-
-​
-Remoção do Produto. Precisa de acesso.
-​
-
-Resposta:
-
-```json
-{
-    "id": int,
-    "name": str,
-    "category": str,
-    "price": str
-}
-```
-
-​
 
 # CATEGORIAS
 
@@ -184,7 +205,7 @@ Resposta:
 
 ```json
 {
-    "categories": [
+    "category": [
         {id, nome}
     ]
 }
@@ -202,7 +223,7 @@ Resposta:
 
 ```json
 {
-    "nome_da_categoria": [
+    "category_name": [
         {Products}
     ]
 }
@@ -218,7 +239,7 @@ Resposta:
 
 ```json
 {
-    "nome_da_categoria": [
+    "category_name": [
         {Products}
     ]
 }
@@ -231,16 +252,22 @@ Resposta:
 ## `GET/inventory`
 
 ​
-Apenas visualização do estoque (id, qtde e CMM), deve mostrar alguns apenas e aceitar query. Precisa de acesso.
+Apenas visualização do estoque (id, quantity e value), deve mostrar alguns apenas e fazer paginação. Precisa de acesso como funcionário.
 ​
 
 Resposta:
 
 ```json
 {
-    "inventory": [
-        {id, qtde, CMM}
-    ]
+  "page": int,
+  "per_page": int,
+  "data": [
+    {
+      "id": int,
+      "quantity": int,
+      "value": float
+    }
+  ]
 }
 ```
 
@@ -249,44 +276,56 @@ Resposta:
 ## `GET/inventory/id`
 
 ​
-Visualiza estoque de um produto específico. Precisa de acesso.
+Visualiza estoque de um produto específico. Precisa de acesso como funcionário.
 ​
 
 Resposta:
 
 ```json
+
 {
-    "id": int,
-    "qtde": int,
-    "cmm": int
+  "inventory": [
+    {
+      "id": int,
+      "quantity": int,
+      "value": float
+    }
+  ]
 }
 ```
 
 ## `PATCH/inventory/id`
 
 ​
-Visualiza estoque de um produto específico. Precisa de acesso.
+Visualiza estoque de um produto específico. Precisa de acesso como funcionário.
 ​
 
 Resposta:
 
 ```json
 {
-    "id": int,
-    "qtde": int,
-    "cmm": int
+  "id": int,
+  "qtde": int,
+  "value": floar
 }
 ```
 
 ## `DELETE/inventory/id`
 
 ​
-Deleta estoque de um produto específico. Precisa de acesso.
+Zera o estoque de um produto específico. Precisa de acesso como funcionário.
 ​
 
 Resposta:
 
-`no content, 200 OK`
+```json
+{
+  "id": int,
+  "qtde": 0,
+  "value": 0
+}
+```
+
 ​
 
 ### VENDAS
@@ -333,7 +372,7 @@ E-MAIL
 
 ## `GET/order`
 
-Lista apenas alguns produtos, deve aceitar queries de page "?page=2&per_page=4" e de categorias (filtrar por uma apenas)​
+Lista apenas alguns produtos, deve aceitar queries de page "?page=2&per_page=4".​
 
 Resposta:
 
@@ -369,43 +408,48 @@ Resposta:
 
 ​
 Atualização da compra do cliente. Precisa de acesso.
+Rota aceita dois tipos de request e deve ser feito APENAS UM de cada vez.
 
 ​
-Requisição:
+Requisição para mudança de status, aceita apenas as opções "active" ou "completed":
 
 ```json
 {
-    "order": [
-        {id, qtde}
-    ],
-    "discount": "20%"
+    "status": "active" OR "completed"
 }
 ```
 
 ​
 Resposta:
 
-E-MAIL
-
 ```json
 {
-    "order": [
-        {id, qtde}
-    ],
-    "total": float
+    Order
 }
 ```
 
-​
+Requisição para atualizar quantidades de produtos existentes no order:
 
-- Deve atualizar o estoque novamente
-- Erro: nova quantidade não está disponível
-  ​
+```json
+{
+    "products": [
+		{"id": int, "quantity": int}
+	]
+}
+```
+
+Resposta:
+
+```json
+{
+    Order
+}
+```
 
 ## `DELETE/order/id`
 
 ​
-Remoção da compra do cliente. Precisa de acesso.
+Cancela um pedido e altera seu status para "deleted". Precisa de acesso.
 
 ​
 Resposta:
@@ -413,12 +457,7 @@ Resposta:
 E-MAIL
 
 ```json
-{
-    "order": [
-        {id, qtde}
-    ],
-    "total": float
-}
+{ "msg": "order deleted" }
 ```
 
 - Voltar a quantidade de produto para estoque
@@ -431,7 +470,7 @@ E-MAIL
 ## `POST/purchases`
 
 ​
-Compra de novos produtos para estoque. Precisa de acesso.
+Compra de novos produtos para estoque. Usuário deve ser um funcionário.
 
 ​
 Requisição:
@@ -473,14 +512,17 @@ Resposta:
 ## `GET/purchases`
 
 ​
-Mostra todos os pedidos de compra para estoque. Precisa de acesso.
+Mostra todos os pedidos de compra para estoque. Usuário deve ser um funcionário.
 
-​
 Resposta:
 
 ```json
-[
-  {
+{
+  "total_pages": integer,
+  "current_page": integer,
+  "next_page": string,
+  "prev_page": string,
+  "purchases": {
     "id": integer,
     "date": string,
     "products": [
@@ -491,7 +533,7 @@ Resposta:
       }
     ]
   }
-]
+}
 ```
 
 ​
@@ -499,7 +541,7 @@ Resposta:
 ## `GET/purchases/id`
 
 ​
-Mostra informações de um pedido de compra específico. Precisa de acesso.
+Mostra informações de um pedido de compra específico. Usuário deve ser um funcionário.
 
 ​
 Resposta:
@@ -522,10 +564,7 @@ Resposta:
 
 ## `DELETE/purchases/id`​
 
-Remoção do pedido de compra para estoque. Precisa de acesso.
+Remoção do pedido de compra para estoque. Usuário deve ser um funcionário.
 
 ​
 Sem Resposta
-
-- Deve atualizar a quantidade do produto no estoque
-- Deve atualizar o custo de produto em estoque (média)

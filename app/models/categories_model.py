@@ -3,6 +3,8 @@ from app.configs.database import db
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import validates
 
+from app.models.products_model import ProductModel
+
 @dataclass
 class CategoryModel(db.Model):
     __tablename__ = "categories"
@@ -15,6 +17,21 @@ class CategoryModel(db.Model):
 
     @validates('name')
     def validate_fildes(self,_,value):
-        if not type(value)== str:
-            raise ValueError
-        return value
+        if not type(value) == str:
+            raise TypeError({
+                "msg": f"expected name to be: str, instead got: {type(value).__name__}"
+                })
+        return value.lower()
+
+    def serializer(self,list_products:list[ProductModel]) -> dict:
+        def format_product(product:ProductModel) -> dict:
+            return  {
+                        "id": product.id,
+                        "name": product.name,
+                        "price": product.price,
+                        "description": product.description
+                    }    
+        products_formated = [format_product(product) for product in list_products]
+
+        return {self.name:products_formated}
+
