@@ -10,6 +10,7 @@ from werkzeug.exceptions import NotFound,BadRequestKeyError
 from http import HTTPStatus
 def create_order():
     default_keys=['order','customer_id']
+    default_keys_product=['id','quantity']
     data=request.get_json()
     if set(data)!=set(default_keys):
         return jsonify({'error':'Wrong Keys','correct_keys':default_keys,'recived_keys':[keys for keys in data.keys()]})
@@ -27,8 +28,12 @@ def create_order():
     total=0
     for product in products_data:
         try:
+            if set(default_keys)!=set(product.keys()):
+                return jsonify({'error':'Wrong_Keys_products','correct_keys':default_keys,'recived_keys':[keys for keys in data.keys()]})
             if type(product['id']) is not int or type(product['quantity']) is not int:
                 return jsonify({'error':f'id or quantity is not int'}),HTTPStatus.BAD_REQUEST
+            if(product['quantity']>0):
+                return jsonify({'error':f'id:{product["id"]} has invalid amount'})
             aux=ProductModel.query.get_or_404(product['id'],description={'error':f'id:{product["id"]} NOT FOUND'})
             inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description=f'id:{product["id"]} NOT FOUND2')
         except NotFound as e:
@@ -57,7 +62,16 @@ def create_order():
                     'products':[x for x in order.products]}),201
 
 def get_orders():
-    return jsonify(OrderModel.query.all()), 200
+    page=request.args.get("page",type=int)
+    per_page=request.args.get("per_page",type=int)
+    if not page:
+        page=1
+    if not per_page:
+        per_page=3
+    
+    data=OrderModel.query.order_by(OrderModel.id).paginate(page, per_page)
+    return jsonify(data.items), 200
+    
 
 def get_order_by_id(order_id):
     try:
@@ -89,6 +103,8 @@ def patch_product(order_id):
     quantity_total=0
     try:
         order=OrderModel.query.get_or_404(order_id,description={'error':f'id:{order_id} NOT FOUND'})
+        if order.status=='Deleted':
+            return jsonify({'error':'Delete only the delete route'})
         if (data.get('products')):
             order_infos=db.session.execute(query_select_quantity).all()
             for infos in order_infos:
@@ -113,9 +129,7 @@ def patch_product(order_id):
                         return jsonify({'error':f'id:{product["id"]} Not valid for this order'})
                     db.session.commit()
         if data.get('status'):
-            order=OrderModel.query.get_or_404(order_id,description={'error':f'id:{order_id} NOT FOUND'})
-            if data['status']=='Deleted':
-                return jsonify({'error':'Delete only the delete route'})
+
             if not(data['status'] in default_status):
                 return jsonify({'error':'The reported status is invalid'}),HTTPStatus.BAD_REQUEST
             order.status=data['status']
