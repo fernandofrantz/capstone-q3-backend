@@ -19,7 +19,7 @@ class CategoryModel(db.Model):
     def validate_fildes(self,_,value):
         if not type(value) == str:
             raise ValueError
-        return value
+        return value.lower()
 
     def serializer(self,list_products:list[ProductModel]) -> dict:
         def format_product(product:ProductModel) -> dict:

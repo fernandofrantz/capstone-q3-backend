@@ -10,14 +10,14 @@ from app.models.customers_model import CustomerModel
 from app.services.validations import check_valid_patch
 
 def get_categories():
-    all_categories = CategoryModel.query.all()
+    all_categories = CategoryModel.query.order_by(CategoryModel.id).all()
     return jsonify(all_categories), HTTPStatus.OK
 
 def get_category_by_id(category_id:int):
     category_filtred:CategoryModel = CategoryModel.query.get(category_id)
     if not category_filtred:
         return {'error':'category not found'},HTTPStatus.NOT_FOUND
-    products_filtred_by_category:list[ProductModel] = ProductModel.query.filter_by(category_id=category_id).all()
+    products_filtred_by_category:list[ProductModel] = ProductModel.query.filter_by(category_id=category_id).order_by(ProductModel.id).all()
 
     return category_filtred.serializer(products_filtred_by_category),HTTPStatus.OK
 
