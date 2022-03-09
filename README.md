@@ -106,6 +106,7 @@ Resposta:
 ```
 
 ​
+
 ## `GET/products/{id}`
 
 ​
@@ -123,7 +124,6 @@ Resposta:
   "description": str
 }
 ```
-
 
 ## `POST/products`
 
@@ -190,8 +190,6 @@ Resposta:
 ```
 
 - Registra a categoria caso ela ainda não exista.
-
-
 
 # CATEGORIAS
 
@@ -472,7 +470,7 @@ E-MAIL
 ## `POST/purchases`
 
 ​
-Compra de novos produtos para estoque. Precisa de acesso.
+Compra de novos produtos para estoque. Usuário deve ser um funcionário.
 
 ​
 Requisição:
@@ -514,14 +512,17 @@ Resposta:
 ## `GET/purchases`
 
 ​
-Mostra todos os pedidos de compra para estoque. Precisa de acesso.
+Mostra todos os pedidos de compra para estoque. Usuário deve ser um funcionário.
 
-​
 Resposta:
 
 ```json
-[
-  {
+{
+  "total_pages": integer,
+  "current_page": integer,
+  "next_page": string,
+  "prev_page": string,
+  "purchases": {
     "id": integer,
     "date": string,
     "products": [
@@ -532,7 +533,7 @@ Resposta:
       }
     ]
   }
-]
+}
 ```
 
 ​
@@ -540,7 +541,7 @@ Resposta:
 ## `GET/purchases/id`
 
 ​
-Mostra informações de um pedido de compra específico. Precisa de acesso.
+Mostra informações de um pedido de compra específico. Usuário deve ser um funcionário.
 
 ​
 Resposta:
@@ -563,10 +564,7 @@ Resposta:
 
 ## `DELETE/purchases/id`​
 
-Remoção do pedido de compra para estoque. Precisa de acesso.
+Remoção do pedido de compra para estoque. Usuário deve ser um funcionário.
 
 ​
 Sem Resposta
-
-- Deve atualizar a quantidade do produto no estoque
-- Deve atualizar o custo de produto em estoque (média)
