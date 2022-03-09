@@ -25,6 +25,6 @@ class PurchaseProductModel(db.Model):
             raise BadRequest(description=f"expected quantity to be: int, instead got: {type(value).__name__}")
 
         if (key == 'value' and type(value) != float and type(value) != int):
-            raise BadRequest(description=f"expected quantity to be: int, instead got: {type(value).__name__}")
+            raise BadRequest(description=f"expected quantity to be: float, instead got: {type(value).__name__}")
 
         return value
