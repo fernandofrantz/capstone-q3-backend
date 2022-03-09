@@ -40,13 +40,13 @@ def create_purchase():
             return jsonify(purchase), HTTPStatus.CREATED
 
         except KeyError:
-            raise BadRequest(description="Request must contain a 'products' list")
+            raise BadRequest(description="request must contain a products list")
 
         except AttributeError:
-            raise BadRequest(description="The 'products' field must be a list")
+            raise BadRequest(description="'products' field must be a list")
 
         except TypeError:
-            raise BadRequest(description="Product data either missing or invalid")
+            raise BadRequest(description="product data either missing or invalid")
 
     except Forbidden as e:
         return jsonify({"error": e.description}), e.code
@@ -69,13 +69,13 @@ def get_purchases():
         purchases = base_query.order_by(PurchaseModel.id).paginate(page, per_page)
         response = serialize_pagination(purchases, "purchases", "purchase_list")
 
-        return jsonify(response), HTTPStatus.OK
+        return jsonify({"purchases": response}), HTTPStatus.OK
 
     except Forbidden as e:
         return jsonify({"error": e.description}), e.code
 
     except NotFound:
-        return jsonify({"error": "Page not found"}), HTTPStatus.NOT_FOUND
+        return jsonify({"error": "page not found"}), HTTPStatus.NOT_FOUND
 
 @jwt_required()
 def get_purchase_by_id(purchase_id):

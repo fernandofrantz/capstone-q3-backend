@@ -21,18 +21,18 @@ def get_inventory():
 def get_inventory_by_id(inventory_id):
     user_identity = get_jwt_identity()
     if not CustomerModel.query.get(user_identity.get('id')).employee:
-        return {"msg": "Unauthorized"}, 401
+        return {"msg": "unauthorized"}, 401
     try:
         inventory_item = InventoryModel.query.get_or_404(inventory_id)
         return jsonify(inventory_item), 200
     except NotFound:
-        return {"msg": f"Product id {inventory_id} not found."}, 404
+        return {"msg": f"product id {inventory_id} not found"}, 404
 
 @jwt_required()
 def patch_inventory(inventory_id):
     user_identity = get_jwt_identity()
     if not CustomerModel.query.get(user_identity.get('id')).employee:
-        return {"msg": "Unauthorized"}, 401
+        return {"msg": "unauthorized"}, 401
     try:
         data = request.get_json()
         inventory_item = InventoryModel.query.get_or_404(inventory_id)
@@ -50,7 +50,7 @@ def patch_inventory(inventory_id):
         return jsonify(inventory_item), 200
 
     except NotFound:
-        return {"msg": f"Product id {inventory_id} not found."}, 404
+        return {"msg": f"product id {inventory_id} not found"}, 404
     except KeyError as err:
         return jsonify(err.args[0]), 400
     except TypeError as err:
@@ -61,7 +61,7 @@ def patch_inventory(inventory_id):
 def delete_inventory(inventory_id):
     user_identity = get_jwt_identity()
     if not CustomerModel.query.get(user_identity.get('id')).employee:
-        return {"msg": "Unauthorized"}, 401
+        return {"msg": "unauthorized"}, 401
     try:
         inventory_item = InventoryModel.query.get_or_404(inventory_id)
         setattr(inventory_item, "value", 0)
@@ -72,5 +72,5 @@ def delete_inventory(inventory_id):
         return jsonify(inventory_item), 200
 
     except NotFound:
-        return {"msg": f"Product id {inventory_id} not found."}, 404
+        return {"msg": f"product id {inventory_id} not found"}, 404
 

@@ -30,23 +30,21 @@ def sign_up():
 
     except KeyError:
         valid_keys = {"name": str, "email": str, "password": str}
-        return {"invalid_keys": [
-            {"sent_keys": 
+        return {
+            "required_keys": 
+                list(valid_keys.keys()),
+            "recieved_keys": 
                 list(new_user_data.keys())
-            }, 
-            {"valid_keys": 
-                list(valid_keys.keys())
-            }
-        ]}, HTTPStatus.BAD_REQUEST
+        }, HTTPStatus.BAD_REQUEST
 
     except ValueError as error:
         return {"error": str(error)}, HTTPStatus.BAD_REQUEST
 
-    except TypeError:
-        return {"error": "expected string value"}, HTTPStatus.BAD_REQUEST
+    except TypeError as err:
+        return jsonify({"error": err.args[0]}), HTTPStatus.BAD_REQUEST
 
     except IntegrityError:
-        return {"conflict": "email already registered"}, HTTPStatus.CONFLICT
+        return {"error": "email already registered"}, HTTPStatus.CONFLICT
 
 def sign_in():
     try:
@@ -67,18 +65,16 @@ def sign_in():
             return {"api_key": access_token}, HTTPStatus.OK
 
         else:
-            return {"error": "login failed: e-mail or password incorrect"}, HTTPStatus.BAD_GATEWAY
+            return {"error": "login failed, incorrect e-mail or password"}, HTTPStatus.BAD_GATEWAY
     
     except KeyError:
         valid_keys = {"email": str, "password": str}
-        return {"invalid_keys": [
-            {"sent_keys": 
+        return  {
+            "required_keys": 
+                list(valid_keys.keys()),
+            "recieved_keys": 
                 list(login_data.keys())
-            }, 
-            {"valid_keys": 
-                list(valid_keys.keys())
-            }
-        ]}, HTTPStatus.BAD_REQUEST
+        }, HTTPStatus.BAD_REQUEST
 
 @jwt_required()
 def patch_user(user_id):

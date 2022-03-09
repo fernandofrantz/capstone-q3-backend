@@ -18,7 +18,9 @@ class CategoryModel(db.Model):
     @validates('name')
     def validate_fildes(self,_,value):
         if not type(value) == str:
-            raise ValueError
+            raise TypeError({
+                "error": f"expected name to be: str, instead got: {type(value).__name__}"
+                })
         return value.lower()
 
     def serializer(self,list_products:list[ProductModel]) -> dict:

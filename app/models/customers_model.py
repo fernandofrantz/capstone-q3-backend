@@ -40,7 +40,7 @@ class CustomerModel(db.Model):
     @validates("name", "password")
     def validates_user_data(self, key, value):
         if (type(value) != str):
-            raise TypeError(f'key {key} recieved a {type(value).__name__}, but was expecting str')
+            raise TypeError(f'expected {key} to be: str, instead got: {type(value).__name__}')
         return value
 
     @validates("email")
