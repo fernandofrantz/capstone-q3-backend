@@ -7,9 +7,15 @@ from app.services.validations import check_valid_patch
 from app.models.products_model import ProductModel
 from app.models.inventory_model import InventoryModel
 from app.models.categories_model import CategoryModel
+from app.models.customers_model import CustomerModel
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
+@jwt_required()
 def create_product():
+    user_identity = get_jwt_identity()
+    if not CustomerModel.query.get(user_identity.get('id')).employee:
+        return {"msg": "Unauthorized"}, 401
     try:
         data = request.get_json()
 
@@ -33,11 +39,7 @@ def create_product():
         return jsonify(new_product), HTTPStatus.OK
         
     except KeyError:
-        data = request.get_json()
-        for key in data.keys():
-            if key != 'name' and key != 'price' and key != 'description' and key != 'category':
-                wrong_key = key
-        return {"available_keys": ["name", "price", "description", "category"], "wrong_keys_sended":[wrong_key]}, HTTPStatus.BAD_REQUEST
+        return {"available_keys": ["name", "price", "description", "category"], "recieved_keys": list(data.keys())}, HTTPStatus.BAD_REQUEST
 
     except ValueError as error:
         return {"error": str(error)}, HTTPStatus.BAD_REQUEST
@@ -60,7 +62,11 @@ def get_product_by_id(product_id):
     except NotFound:
         return {"msg": "product not found!"}, HTTPStatus.NOT_FOUND
 
+@jwt_required()
 def patch_product(product_id):
+    user_identity = get_jwt_identity()
+    if not CustomerModel.query.get(user_identity.get('id')).employee:
+        return {"msg": "Unauthorized"}, 401
     try:
         data = request.get_json()
         product = ProductModel.query.get_or_404(product_id)
@@ -68,13 +74,18 @@ def patch_product(product_id):
         valid_keys = ["name", "category", "description", "price"]
         check_valid_patch(data, valid_keys)
 
-        category = CategoryModel.query.filter_by(name=data["category"]).first()
-        if category == None:
+        category = CategoryModel.query.filter_by(name=data.get("category")).first()
+
+        if category is not None:
+            data["category_id"] = category.id
+            del data["category"]
+
+        if category == None and data.get("category"):
             category = CategoryModel(**{"name":data["category"]})
             current_app.db.session.add(category)
             current_app.db.session.commit()
-        data["category_id"] = category.id
-        del data["category"]
+            data["category_id"] = category.id
+            del data["category"]
 
         for key, name in data.items():
             setattr(product, key, name)
@@ -86,16 +97,8 @@ def patch_product(product_id):
 
     except NotFound:
         return {"msg": "product not found!"}, HTTPStatus.NOT_FOUND
-    except KeyError:
-        valid_keys = {"name": str, "price": float, "description": str, "category_id": str}
-        return {"invalid_keys": [
-            {"sent_keys": 
-                list(data.keys())
-            }, 
-            {"valid_keys": 
-                list(valid_keys.keys())
-            }
-        ]}, HTTPStatus.BAD_REQUEST
+    except KeyError as err:
+        return jsonify(err.args[0]), HTTPStatus.BAD_REQUEST
 
     except ValueError as error:
         return {"error": str(error)}, HTTPStatus.BAD_REQUEST
