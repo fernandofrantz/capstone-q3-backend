@@ -8,7 +8,6 @@ from app.models.orders_products_model import orders_products
 from sqlalchemy import update,select
 from werkzeug.exceptions import NotFound,BadRequestKeyError
 from http import HTTPStatus
-
 def create_order():
     default_keys=['order','customer_id']
     data=request.get_json()
@@ -24,12 +23,14 @@ def create_order():
         order=OrderModel(**{"customer_id":customer_id,'status':'Active'})
     except BadRequestKeyError as e:
         return jsonify(e.description),HTTPStatus.BAD_REQUEST
+    quantity_total=0
+    total=0
     for product in products_data:
         try:
             if type(product['id']) is not int or type(product['quantity']) is not int:
                 return jsonify({'error':f'id or quantity is not int'}),HTTPStatus.BAD_REQUEST
             aux=ProductModel.query.get_or_404(product['id'],description={'error':f'id:{product["id"]} NOT FOUND'})
-            inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description=f'id:{product["id"]} NOT FOUND')
+            inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description=f'id:{product["id"]} NOT FOUND2')
         except NotFound as e:
             return jsonify(e.description),HTTPStatus.NOT_FOUND
         if inventory.quantity <product['quantity']:
@@ -37,20 +38,20 @@ def create_order():
         cost=inventory.value/inventory.quantity
         inventory.quantity-=product['quantity']
         inventory.value-=cost*product['quantity']
-        aux.orders.append(order)
-        price=aux.price
         db.session.add(order)
+        aux.orders.append(order)
         db.session.commit()
-        query=(update(orders_products).where(orders_products.c.order_id==order.id).values(quantity=product['quantity'],price=price,cost=cost))
-        query_order_products=select(orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order.id)
+        quantity_total+=product['quantity']
+        total+=aux.price*product['quantity']
+        query_order_products=select(orders_products.c.id).order_by(orders_products.c.id.desc())
+        last_id=db.session.execute(query_order_products).first()
+        query=(update(orders_products).where(orders_products.c.id==last_id[0]).values(quantity=product['quantity'],price=aux.price,cost=round(cost,2)))
         db.session.execute(query)
-        orders_products_infos=db.session.execute(query_order_products).fetchone()
-        total=round(list(orders_products_infos)[1],2)*list(orders_products_infos)[0]
         db.session.commit()
     return jsonify({'id':order.id,
                     'name':customer.name,
                     'order_date':order.order_date,
-                    'quantity':list(orders_products_infos)[0],
+                    'quantity':quantity_total,
                     'status':order.status,
                     'total':round(total,2),
                     'products':[x for x in order.products]}),201
@@ -64,43 +65,57 @@ def get_order_by_id(order_id):
     except NotFound as e:
         return jsonify(e.description),HTTPStatus.NOT_FOUND
     query_order_products=select(orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order.id)
-    orders_products_infos=db.session.execute(query_order_products).fetchone()
-    total=round(list(orders_products_infos)[1],2)*list(orders_products_infos)[0]
+    orders_products_infos=db.session.execute(query_order_products).all()
+    total=0
+    quantity_total=0
+    for infos in orders_products_infos:
+        quantity_total+=infos[0]
+        total+=infos[0]*infos[1]
     return jsonify({'id':order.id,
                     'order_date':order.order_date,
-                    'quantity':list(orders_products_infos)[0],
+                    'quantity':quantity_total,
                     'status':order.status,
                     'total':round(total,2),
                     'products':[x for x in order.products]}),201
 
 def patch_product(order_id):
     default_keys=['products','status']
-    default_status=['Active','Complete','Deleted']
+    default_status=['Active','Complete']
     data=request.get_json()
     if not set(data.keys()).issubset(set(default_keys)):
         return jsonify({'error':'Wrong Keys','valid_keys':default_keys,'recived_keys':list(data.keys())}),HTTPStatus.BAD_REQUEST
-    query_select_quantity=select(orders_products.c.quantity,orders_products.c.price).where(orders_products.c.order_id==order_id)
+    query_select_quantity=select(orders_products.c.id,orders_products.c.product_id,orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order_id)
+    total=0
+    quantity_total=0
     try:
+        order=OrderModel.query.get_or_404(order_id,description={'error':f'id:{order_id} NOT FOUND'})
         if (data.get('products')):
-            for product in data['products']:
-                if not (product.get('id')) or not (product.get('quantity')):
-                    return jsonify({'error':'id or quantity not informed'}),HTTPStatus.BAD_REQUEST
-                if  type(product['id']) is not int  or type(product['quantity']) is not int:
-                    return jsonify({'error':'id or quantity is not int'}),HTTPStatus.BAD_REQUEST
-                dict_values={'quantity':product['quantity']}
-                order_infos=db.session.execute(query_select_quantity).fetchone()
-                query_order=(update(orders_products).where(orders_products.c.order_id==order_id).values(dict_values).returning(orders_products.c.order_id,orders_products.c.product_id,orders_products))
-                order_products=db.session.execute(query_order).fetchone()
-                order=OrderModel.query.get_or_404(order_id,description={'error':f'id:{order_id} NOT FOUND'})
-                if order_products==None:
-                    raise NotFound(description={'error':f'id:{order_id} NOT FOUND'})
-                inventory=InventoryModel.query.filter_by(product_id=list(order_products)[1]).first_or_404(description={'error':f'product_id:{list(order_products)[1]} NOT FOUND'})
-                inventory.quantity+=list(order_infos)[0]
-                if(inventory.quantity<product['quantity']):
-                    return {'error':f'product It unavailable'},HTTPStatus.INSUFFICIENT_STORAGE
-                inventory.quantity-=product['quantity']
+            order_infos=db.session.execute(query_select_quantity).all()
+            for infos in order_infos:
+                for product in data['products']:
+                    if infos[1]==product['id']:
+                        if not (product.get('id')) or not (product.get('quantity')):
+                            return jsonify({'error':'id or quantity not informed'}),HTTPStatus.BAD_REQUEST
+                        if  type(product['id']) is not int  or type(product['quantity']) is not int:
+                            return jsonify({'error':'id or quantity is not int'}),HTTPStatus.BAD_REQUEST
+                        dict_values={'quantity':product['quantity']}
+                        query_order=(update(orders_products).where(orders_products.c.id==infos[0]).values(dict_values))
+                        db.session.execute(query_order)
+                        inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description={'error':f'product_id:{product["id"]} NOT FOUND'})
+                        inventory.quantity+=infos[2]
+                        inventory.value+=infos[4]
+                        if(inventory.quantity<product['quantity']):
+                            return {'error':f'product It unavailable'},HTTPStatus.INSUFFICIENT_STORAGE
+                        cost=inventory.value/inventory.quantity
+                        inventory.value-=cost*product['quantity']
+                        inventory.quantity-=product['quantity']
+                    else:
+                        return jsonify({'error':f'id:{product["id"]} Not valid for this order'})
+                    db.session.commit()
         if data.get('status'):
             order=OrderModel.query.get_or_404(order_id,description={'error':f'id:{order_id} NOT FOUND'})
+            if data['status']=='Deleted':
+                return jsonify({'error':'Delete only the delete route'})
             if not(data['status'] in default_status):
                 return jsonify({'error':'The reported status is invalid'}),HTTPStatus.BAD_REQUEST
             order.status=data['status']
@@ -108,12 +123,14 @@ def patch_product(order_id):
             db.session.commit()
     except NotFound as e:
         return jsonify(e.description),HTTPStatus.NOT_FOUND
-    order_infos=db.session.execute(query_select_quantity).fetchone()
-    total=list(order_infos)[0]*round(list(order_infos)[1],2)
+    order_infos=db.session.execute(query_select_quantity).all()
+    for infos in  order_infos:
+        quantity_total+=infos[2]
+        total+=infos[2]*round(infos[3],2)
     db.session.commit()
     return jsonify({'id':order.id,
                     'order_date':order.order_date,
-                    'quantity':list(order_infos)[0],
+                    'quantity':quantity_total,
                     'status':order.status,
                     'total':round(total,2),
                     'products':[x for x in order.products]}),201
