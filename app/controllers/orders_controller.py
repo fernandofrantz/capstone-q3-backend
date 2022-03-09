@@ -8,17 +8,19 @@ from app.models.orders_products_model import orders_products
 from sqlalchemy import update,select
 from werkzeug.exceptions import NotFound,BadRequestKeyError
 from http import HTTPStatus
-
+from flask_jwt_extended import jwt_required,get_jwt_identity
+@jwt_required()
 def create_order():
-    default_keys=['order','customer_id']
+    customer=get_jwt_identity()
+    default_keys=['order']
     default_keys_product=['id','quantity']
     data=request.get_json()
     if set(data)!=set(default_keys):
         return jsonify({'error':'Wrong Keys','correct_keys':default_keys,'recived_keys':[keys for keys in data.keys()]})
     products_data=data['order']
-    customer_id=data['customer_id']
+    customer_id=customer['id']
     try:
-        customer=CustomerModel.query.get_or_404(customer_id,description={'error':f'Customer_id:{customer_id} NOT FOUND'})
+        customer=CustomerModel.query.get_or_404(customer['id'],description={'error':f'Customer_id:{customer["id"]} NOT FOUND'})
     except NotFound as e:
         return jsonify(e.description),HTTPStatus.NOT_FOUND
     try:
@@ -61,8 +63,11 @@ def create_order():
                     'status':order.status,
                     'total':round(total,2),
                     'products':[x for x in order.products]}),201
-
+@jwt_required()
 def get_orders():
+    user_identity = get_jwt_identity()
+    if not CustomerModel.query.get(user_identity.get('id')).employee:
+        return {"msg": "Unauthorized"}, 401
     page=request.args.get("page",type=int)
     per_page=request.args.get("per_page",type=int)
     print(per_page)
@@ -73,12 +78,16 @@ def get_orders():
     data=OrderModel.query.order_by(OrderModel.id).paginate(page, per_page)
     return jsonify(data.items), 200
     
-
+@jwt_required()
 def get_order_by_id(order_id):
+    user_identity = get_jwt_identity()
     try:
         order=OrderModel.query.get_or_404(order_id,description={'error':f'id:{order_id} NOT FOUND'})
     except NotFound as e:
         return jsonify(e.description),HTTPStatus.NOT_FOUND
+    if not (CustomerModel.query.get(user_identity.get('id')).employee) and (order.customer_id!=user_identity.get('id')):
+        return {"msg": "Unauthorized"}, 401
+    
     query_order_products=select(orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order.id)
     orders_products_infos=db.session.execute(query_order_products).all()
     total=0
@@ -92,8 +101,9 @@ def get_order_by_id(order_id):
                     'status':order.status,
                     'total':round(total,2),
                     'products':[x for x in order.products]}),201
-
+@jwt_required()
 def patch_product(order_id):
+    user_identity = get_jwt_identity()
     default_keys=['products','status']
     default_status=['Active','Complete']
     data=request.get_json()
@@ -111,6 +121,8 @@ def patch_product(order_id):
     quantity_total=0
     try:
         order=OrderModel.query.get_or_404(order_id,description={'error':f'id:{order_id} NOT FOUND'})
+        if not (CustomerModel.query.get(user_identity.get('id')).employee) and (order.customer_id!=user_identity.get('id')):
+            return {"msg": "Unauthorized"}, 401
         if order.status=='Deleted':
             return jsonify({'error':'Delete only the delete route'})
         if (data.get('products')):
@@ -154,10 +166,13 @@ def patch_product(order_id):
                     'status':order.status,
                     'total':round(total,2),
                     'products':[x for x in order.products]}),201
-
+@jwt_required()
 def delete_product(order_id):
+    user_identity = get_jwt_identity()
     try:
         order=OrderModel.query.get_or_404(order_id,description={'error':f'product_id:{order_id} NOT FOUND'})
+        if not (CustomerModel.query.get(user_identity.get('id')).employee) and (order.customer_id!=user_identity.get('id')):
+            return {"msg": "Unauthorized"}, 401
     except NotFound as e:
         return jsonify(e.description)
     query_select_quantity=select(orders_products.c.id,orders_products.c.product_id,orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order_id).order_by(orders_products.c.id)
