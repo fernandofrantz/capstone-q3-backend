@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import jwt_required
 from http import HTTPStatus
 import re
+import datetime
 
 def sign_up():
     try:
@@ -60,7 +61,8 @@ def sign_in():
 
         if (found_user.verify_password(login_data['password'])):
 
-            access_token = create_access_token(identity=found_user.serializer())
+            expires = datetime.timedelta(days=365)
+            access_token = create_access_token(identity=found_user.serializer(), expires_delta=expires)
 
             return {"api_key": access_token}, HTTPStatus.OK
 

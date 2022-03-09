@@ -372,7 +372,7 @@ E-MAIL
 
 ## `GET/order`
 
-Lista apenas alguns produtos, deve aceitar queries de page "?page=2&per_page=4" e de categorias (filtrar por uma apenas)​
+Lista apenas alguns produtos, deve aceitar queries de page "?page=2&per_page=4".​
 
 Resposta:
 
@@ -408,43 +408,48 @@ Resposta:
 
 ​
 Atualização da compra do cliente. Precisa de acesso.
+Rota aceita dois tipos de request e deve ser feito APENAS UM de cada vez.
 
 ​
-Requisição:
+Requisição para mudança de status, aceita apenas as opções "active" ou "completed":
 
 ```json
 {
-    "order": [
-        {id, qtde}
-    ],
-    "discount": "20%"
+    "status": "active" OR "completed"
 }
 ```
 
 ​
 Resposta:
 
-E-MAIL
-
 ```json
 {
-    "order": [
-        {id, qtde}
-    ],
-    "total": float
+    Order
 }
 ```
 
-​
+Requisição para atualizar quantidades de produtos existentes no order:
 
-- Deve atualizar o estoque novamente
-- Erro: nova quantidade não está disponível
-  ​
+```json
+{
+    "products": [
+		{"id": int, "quantity": int}
+	]
+}
+```
+
+Resposta:
+
+```json
+{
+    Order
+}
+```
 
 ## `DELETE/order/id`
 
 ​
-Remoção da compra do cliente. Precisa de acesso.
+Cancela um pedido e altera seu status para "deleted". Precisa de acesso.
 
 ​
 Resposta:
@@ -452,12 +457,7 @@ Resposta:
 E-MAIL
 
 ```json
-{
-    "order": [
-        {id, qtde}
-    ],
-    "total": float
-}
+{ "msg": "order deleted" }
 ```
 
 - Voltar a quantidade de produto para estoque

@@ -89,7 +89,7 @@ def get_orders():
 def get_order_by_id(order_id):
     user_identity = get_jwt_identity()
     try:
-        order=OrderModel.query.get_or_404(order_id,description={'msg':f'id:{order_id} NOT FOUND'})
+        order=OrderModel.query.get_or_404(order_id,description={'msg':f'order id {order_id} not found'})
     except NotFound as e:
         return jsonify(e.description),HTTPStatus.NOT_FOUND
     if not (CustomerModel.query.get(user_identity.get('id')).employee) and (order.customer_id!=user_identity.get('id')):
@@ -123,15 +123,15 @@ def patch_product(order_id):
     id_data=[product['id'] for product in data.get('products', [])]
     if not (set(id_data).issubset(execute_id)):
         error_id=set(id_data)-set(execute_id)
-        return jsonify({'msg':f'products id {list(error_id)} invalids'})
+        return jsonify({'msg':f'products ids {list(error_id)} invalids'})
     total=0
     quantity_total=0
     try:
-        order=OrderModel.query.get_or_404(order_id,description={'msg':f'id:{order_id} NOT FOUND'})
+        order=OrderModel.query.get_or_404(order_id,description={'msg':f'order id {order_id} not found'})
         if not (CustomerModel.query.get(user_identity.get('id')).employee) and (order.customer_id!=user_identity.get('id')):
             return {"msg": "access denied"}, 403
         if order.status=='deleted':
-            return jsonify({'msg':'order already deleted.'})
+            return jsonify({'msg':'order already deleted'})
         if (data.get('products')):
             order_infos=db.session.execute(query_select_quantity).all()
             for infos in order_infos:
@@ -144,11 +144,9 @@ def patch_product(order_id):
                         dict_values={'quantity':product['quantity']}
                         query_order=(update(orders_products).where(orders_products.c.id==infos[0]).values(dict_values))
                         db.session.execute(query_order)
-                        inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description={'msg':f'product_id:{product["id"]} NOT FOUND'})
-                        # inventory.quantity+=infos[2]
-                        # inventory.value+=infos[4]
+                        inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description={'msg':f'product id {product["id"]} not found'})
                         if(inventory.quantity<(product['quantity']-infos[2])) or inventory.quantity == 0:
-                            return {'msg':f'product It unavailable'},HTTPStatus.INSUFFICIENT_STORAGE
+                            return {'msg':f'product is not available'},HTTPStatus.INSUFFICIENT_STORAGE
                         cost=inventory.value/inventory.quantity
                         inventory.value+=(cost*(infos[2]-product['quantity']))
                         inventory.quantity-=product['quantity']-infos[2]
@@ -185,7 +183,7 @@ def delete_product(order_id):
     query_select_quantity=select(orders_products.c.id,orders_products.c.product_id,orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order_id).order_by(orders_products.c.id)
     order_infos=db.session.execute(query_select_quantity).all()
     for infos in order_infos:
-        inventory=InventoryModel.query.filter_by(product_id=infos[1]).first_or_404(description={'msg':f'product_id:{infos[1]} NOT FOUND'})
+        inventory=InventoryModel.query.filter_by(product_id=infos[1]).first_or_404(description={'msg':f'product id {infos[1]} not found'})
         inventory.quantity+=infos[2]
         inventory.value+=infos[4]
     order.status='deleted'
