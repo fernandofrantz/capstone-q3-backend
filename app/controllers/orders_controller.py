@@ -113,7 +113,7 @@ def patch_product(order_id):
     query_select_id=select(orders_products.c.product_id).where(orders_products.c.order_id==order_id).order_by(orders_products.c.id)
     execute_id=db.session.execute(query_select_id).all()
     execute_id=[x[0] for x in execute_id]
-    id_data=[product['id'] for product in data['products']]
+    id_data=[product['id'] for product in data.get('products', [])]
     if not (set(id_data).issubset(execute_id)):
         error_id=set(id_data)-set(execute_id)
         return jsonify({'error':f'Products id {list(error_id)} Invalids'})
@@ -124,7 +124,7 @@ def patch_product(order_id):
         if not (CustomerModel.query.get(user_identity.get('id')).employee) and (order.customer_id!=user_identity.get('id')):
             return {"msg": "Unauthorized"}, 401
         if order.status=='Deleted':
-            return jsonify({'error':'Delete only the delete route'})
+            return jsonify({'error':'order already deleted.'})
         if (data.get('products')):
             order_infos=db.session.execute(query_select_quantity).all()
             for infos in order_infos:
@@ -138,13 +138,13 @@ def patch_product(order_id):
                         query_order=(update(orders_products).where(orders_products.c.id==infos[0]).values(dict_values))
                         db.session.execute(query_order)
                         inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description={'error':f'product_id:{product["id"]} NOT FOUND'})
-                        inventory.quantity+=infos[2]
-                        inventory.value+=infos[4]
-                        if(inventory.quantity<product['quantity']):
+                        # inventory.quantity+=infos[2]
+                        # inventory.value+=infos[4]
+                        if(inventory.quantity<(product['quantity']-infos[2])) or inventory.quantity == 0:
                             return {'error':f'product It unavailable'},HTTPStatus.INSUFFICIENT_STORAGE
                         cost=inventory.value/inventory.quantity
-                        inventory.value-=cost*product['quantity']
-                        inventory.quantity-=product['quantity']
+                        inventory.value+=(cost*(infos[2]-product['quantity']))
+                        inventory.quantity-=product['quantity']-infos[2]
                 db.session.commit()
         if data.get('status'):
 
@@ -170,7 +170,7 @@ def patch_product(order_id):
 def delete_product(order_id):
     user_identity = get_jwt_identity()
     try:
-        order=OrderModel.query.get_or_404(order_id,description={'error':f'product_id:{order_id} NOT FOUND'})
+        order=OrderModel.query.get_or_404(order_id,description={'error':f'order id:{order_id} NOT FOUND'})
         if not (CustomerModel.query.get(user_identity.get('id')).employee) and (order.customer_id!=user_identity.get('id')):
             return {"msg": "Unauthorized"}, 401
     except NotFound as e:
