@@ -8,6 +8,7 @@ from app.models.orders_products_model import orders_products
 from sqlalchemy import update,select
 from werkzeug.exceptions import NotFound,BadRequestKeyError
 from http import HTTPStatus
+
 def create_order():
     default_keys=['order','customer_id']
     default_keys_product=['id','quantity']
@@ -28,11 +29,11 @@ def create_order():
     total=0
     for product in products_data:
         try:
-            if set(default_keys)!=set(product.keys()):
-                return jsonify({'error':'Wrong_Keys_products','correct_keys':default_keys,'recived_keys':[keys for keys in data.keys()]})
+            if set(default_keys_product)!=set(list(product.keys())):
+                return jsonify({'error':'Wrong_Keys_products','correct_keys':default_keys_product,'recived_keys':[keys for keys in product.keys()]})
             if type(product['id']) is not int or type(product['quantity']) is not int:
                 return jsonify({'error':f'id or quantity is not int'}),HTTPStatus.BAD_REQUEST
-            if(product['quantity']>0):
+            if not (product['quantity']>0):
                 return jsonify({'error':f'id:{product["id"]} has invalid amount'})
             aux=ProductModel.query.get_or_404(product['id'],description={'error':f'id:{product["id"]} NOT FOUND'})
             inventory=InventoryModel.query.filter_by(product_id=product['id']).first_or_404(description=f'id:{product["id"]} NOT FOUND2')
@@ -64,11 +65,11 @@ def create_order():
 def get_orders():
     page=request.args.get("page",type=int)
     per_page=request.args.get("per_page",type=int)
+    print(per_page)
     if not page:
         page=1
     if not per_page:
         per_page=3
-    
     data=OrderModel.query.order_by(OrderModel.id).paginate(page, per_page)
     return jsonify(data.items), 200
     
@@ -98,7 +99,14 @@ def patch_product(order_id):
     data=request.get_json()
     if not set(data.keys()).issubset(set(default_keys)):
         return jsonify({'error':'Wrong Keys','valid_keys':default_keys,'recived_keys':list(data.keys())}),HTTPStatus.BAD_REQUEST
-    query_select_quantity=select(orders_products.c.id,orders_products.c.product_id,orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order_id)
+    query_select_quantity=select(orders_products.c.id,orders_products.c.product_id,orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order_id).order_by(orders_products.c.id)
+    query_select_id=select(orders_products.c.product_id).where(orders_products.c.order_id==order_id).order_by(orders_products.c.id)
+    execute_id=db.session.execute(query_select_id).all()
+    execute_id=[x[0] for x in execute_id]
+    id_data=[product['id'] for product in data['products']]
+    if not (set(id_data).issubset(execute_id)):
+        error_id=set(id_data)-set(execute_id)
+        return jsonify({'error':f'Products id {list(error_id)} Invalids'})
     total=0
     quantity_total=0
     try:
@@ -108,7 +116,7 @@ def patch_product(order_id):
         if (data.get('products')):
             order_infos=db.session.execute(query_select_quantity).all()
             for infos in order_infos:
-                for product in data['products']:
+                for product in sorted(data['products'], key=lambda k: k['id']):
                     if infos[1]==product['id']:
                         if not (product.get('id')) or not (product.get('quantity')):
                             return jsonify({'error':'id or quantity not informed'}),HTTPStatus.BAD_REQUEST
@@ -125,9 +133,7 @@ def patch_product(order_id):
                         cost=inventory.value/inventory.quantity
                         inventory.value-=cost*product['quantity']
                         inventory.quantity-=product['quantity']
-                    else:
-                        return jsonify({'error':f'id:{product["id"]} Not valid for this order'})
-                    db.session.commit()
+                db.session.commit()
         if data.get('status'):
 
             if not(data['status'] in default_status):
@@ -154,6 +160,12 @@ def delete_product(order_id):
         order=OrderModel.query.get_or_404(order_id,description={'error':f'product_id:{order_id} NOT FOUND'})
     except NotFound as e:
         return jsonify(e.description)
+    query_select_quantity=select(orders_products.c.id,orders_products.c.product_id,orders_products.c.quantity,orders_products.c.price,orders_products.c.cost).where(orders_products.c.order_id==order_id).order_by(orders_products.c.id)
+    order_infos=db.session.execute(query_select_quantity).all()
+    for infos in order_infos:
+        inventory=InventoryModel.query.filter_by(product_id=infos[1]).first_or_404(description={'error':f'product_id:{infos[1]} NOT FOUND'})
+        inventory.quantity+=infos[2]
+        inventory.value+=infos[4]
     order.status='Deleted'
     db.session.add(order)
     db.session.commit()
