@@ -3,7 +3,7 @@ from app.models.customers_model import CustomerModel
 from flask_jwt_extended import create_access_token
 from flask import current_app, jsonify, request
 from sqlalchemy.exc import IntegrityError
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from http import HTTPStatus
 import re
 import datetime
@@ -79,9 +79,10 @@ def sign_in():
         }, HTTPStatus.BAD_REQUEST
 
 @jwt_required()
-def patch_user(user_id):
+def patch_user():
     try:
         requesting_data = request.get_json()
+        user_id = get_jwt_identity()['id']
 
         user_to_patch = CustomerModel.query.filter(CustomerModel.id == user_id).first()
 
@@ -98,7 +99,7 @@ def patch_user(user_id):
                 setattr(user_to_patch, key, value)
                 current_app.db.session.add(user_to_patch)
         current_app.db.session.commit()
-        return '', HTTPStatus.OK
+        return jsonify(user_to_patch), HTTPStatus.OK
             
     except KeyError as error:
         return jsonify(error.args[0]), HTTPStatus.BAD_REQUEST

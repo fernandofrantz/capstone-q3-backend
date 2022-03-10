@@ -18,7 +18,7 @@ def create_order():
     default_keys_product=['id','quantity']
     data=request.get_json()
     if set(data)!=set(default_keys):
-        return jsonify({'valid_keys':default_keys,'recieved_keys':[keys for keys in data.keys()]})
+        return jsonify({'valid_keys':default_keys,'recieved_keys':[keys for keys in data.keys()]}), HTTPStatus.BAD_REQUEST
     products_data=data['order']
     customer_id=customer['id']
     try:
