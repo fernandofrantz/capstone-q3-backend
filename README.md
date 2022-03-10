@@ -123,7 +123,7 @@ _Resposta:_
 
 Antes mesmo de ser adicionado ao **estoque**, todo produto precisa estar cadastrado
 no banco de dados. Ao efetuar esse cadastro, também será alocado um espaço no
-**estoque** para o produto, porém sua quantitade e outros dados relevantes estarão zerados.
+**estoque** para o produto, porém sua quantidade e outros dados relevantes estarão zerados.
 
 ### POST/products
 
