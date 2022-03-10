@@ -20,10 +20,11 @@ e valores em estoque.
 
 ## Funcionalidades
 
-- Autenticação de usuários
+- Autenticação
 - Cadastro e categorização de produtos
-- Entrada de produtos no estoque
-- Saída de produtos por compras
+- Adição de produtos ao estoque
+- Realização de compras
+- Supervisão e manutenção dos dados
 
 ## Variáveis de Ambiente
 
@@ -35,13 +36,32 @@ Para rodar esse projeto, você vai precisar adicionar as seguintes variáveis de
 
 # Como usar os Endpoints
 
-Falar um pouco sobre o esquema de endpoints e pa e sei que la
+As rotas da aplicação podem ser dividas em três categorias básicas:
+
+- Rotas públicas
+- Rotas para clientes
+- Rotas para funcionários
+
+Recursos como a visualização de produtos e categorias e a criação de usuários podem
+ser utilizados sem nenhum tipo de token de acesso, enquanto outros como a adição
+de produtos ao estoque só podem ser usados por funcionários.
+
+Esse tipo de validação é feita pelo envio de um Bearer Token no Header nas
+requisições protegidas. Esse tokens seguem o padrão JSON Web Token e são gerados
+automaticamente pela aplicação durante o login de um usuário.
+
+Logo abaixo seguem exemplos de cada rota aceita pela aplicação, junto com seu
+comportamento esperado, os campos necessários para sua utilização e o que será
+retornado pelo servidor.
 
 ## Autenticação
 
-Explicar como funciona a autenticação e o JWT
+Ao criar uma conta, a senha do usuário é haseada e registrada de forma segura no
+banco de dados. Por padrão, um usuário será criado como **cliente** e não terá acesso
+à recursos de funcionários. Porém um **cliente** pode logar no site e, por meio do
+token JWT retornado, realizar pedidos de compras atráves da rota **_/orders_** .
 
-### POST/signup
+### POST/user/signup
 
 ```json
 {
@@ -56,11 +76,11 @@ _Resposta:_
 ```json
 {
   "name": string,
-  "email": string,
+  "email": string
 }
 ```
 
-### POST/signin
+### POST/user/signin
 
 ```json
 {
@@ -77,9 +97,33 @@ _Resposta:_
 }
 ```
 
-## Produtos
+### PATCH/user
 
-Explicar como funciona o cadastro de produtos e tal
+Um usário também pode usar seu token JWT para alterar dados da própria conta. No
+momento, esses dados são apenas seu **name** e **email**.
+
+```json
+{
+  "name": string,
+  "email": string
+}​
+```
+
+_Resposta:_
+
+```json
+{
+  "id": number,
+  "name": string,
+  "email": string
+}
+```
+
+## Cadastro de Produtos
+
+Antes mesmo de ser adicionado ao **estoque**, todo produto precisa estar cadastrado
+no banco de dados. Ao efetuar esse cadastro, também será alocado um espaço no
+**estoque** para o produto, porém sua quantitade e outros dados relevantes estarão zerados.
 
 ### POST/products
 
@@ -106,7 +150,10 @@ _Resposta:_
 
 ### GET/products
 
-Explicar sobre a paginação e pa
+Dados cadastrados em maior quantidade, como produtos e itens no estoque, possuem um
+sistema de paginação, onde são retornados em partes e podem ser acessados seguindo
+os links nos campos **next_page** e **prev_page**, que representam a próxima página
+e a anterior, respectivamente.
 
 _Resposta:_
 
@@ -144,7 +191,8 @@ _Resposta:_
 
 ### PATCH/products/id: integer
 
-Explicar quais dados podem ser alterados e pa
+Qualquer um dos dados na requisição de exemplo pode ser enviado, tanto
+individualmente quanto em qualquer combinação.
 
 ```json
 {
@@ -167,9 +215,11 @@ _Resposta:_
 }
 ```
 
-## Categorias
+## Categorização de Produtos
 
-Explicar como funciona a criação de categorias
+Se uma categoria enviada na **criação de um produto** não existir, essa será criada
+e registrada no banco de dados automaticamente. Ainda assim, as informações de uma
+categoria podem ser acessadas e editadas separadamente.
 
 ### GET/categories
 
@@ -188,7 +238,8 @@ _Resposta:_
 
 ### GET/categories/id: integer
 
-Explicar o que é retornado
+Essa rota retornará o nome da categoria (substituindo o campo **category_name**),
+junto de todos os produtos relacionados à ela cadastrados no banco de dados.
 
 _Resposta:_
 
@@ -222,9 +273,11 @@ _Resposta:_
 }
 ```
 
-## Compras para o Estoque
+## Adição de Produtos ao Estoque
 
-Explicar como funciona a criação de itens no estoque
+Ao cadastrar a entrada de produtos no estoque, todos os valores e quantidades de
+produtos serão registrados individualmente. Além disso, também será possível
+visualizar o total desses dados através da rota **_/orders_**.
 
 ### POST/purchases
 
@@ -258,7 +311,9 @@ _Resposta:_
 
 ### GET/purchases
 
-Explicar denovo sobre a paginação
+Essa rota possue um sistema de paginação, onde os dados são retornados em partes e
+podem ser acessados seguindo os links nos campos next_page e prev_page, que
+representam a próxima página e a anterior, respectivamente.
 
 _Resposta:_
 
@@ -304,13 +359,16 @@ _Resposta:_
 
 ### DELETE/purchases/id: integer
 
-Explicar que a rota exclui todos os registros
+Ao deletar uma purchase, todos os dados referentes à entrada dos produtos são
+revertidos, incluindo as alterações no **estoque**.
 
 **_Sem Resposta_**
 
-## Compra de produtos por clientes
+## Realização de Compras
 
-Explicar a saída de produtos do estoque quando ocorre uma compra
+Ao realizar uma compra, o estoque será automaticamente atualizado de acordo com os
+produtos( identificados por seu **id**), tanto sua quantidade em estoque quanto o
+valor total em produtos.
 
 ### POST/orders
 
@@ -349,7 +407,9 @@ _Resposta:_
 
 ### GET/orders/
 
-Explicar a tal da paginação mais uma vez
+Essa rota possue um sistema de paginação, onde os dados são retornados em partes e
+podem ser acessados seguindo os links nos campos next_page e prev_page, que
+representam a próxima página e a anterior, respectivamente.
 
 _Resposta:_
 
@@ -400,7 +460,10 @@ _Resposta:_
 
 ### PATCH/orders/id: integer
 
-Explicar que dados podem ser alterados
+Uma order também pode ser alterada por um funcionário, caso necessário. Para
+alterar a quantidade de um ou mais produtos, deve ser enviada uma lista dentro do
+campo **order**. O **status** da compra também pode ser modificado, porém, os
+únicos valores aceitos são **"complete"** ou **"active"**.
 
 ```json
 {
@@ -437,7 +500,8 @@ _Resposta:_
 
 ### DELETE/orders/id: integer
 
-Explicar o que acontece quando mandar um delete
+Ao deletar uma order, os valores em **estoque** são revertidos e o **status** da
+compra é alterado para **"deleted"**.
 
 _Resposta:_
 
@@ -449,7 +513,9 @@ _Resposta:_
 
 ## Estoque
 
-Explicar como funciona a criação de itens no estoque
+Essa rota possue um sistema de paginação, onde os dados são retornados em partes e
+podem ser acessados seguindo os links nos campos next_page e prev_page, que
+representam a próxima página e a anterior, respectivamente.
 
 ### GET/inventory
 
@@ -487,7 +553,8 @@ _Resposta:_
 
 ### PATCH/inventory/id: integer
 
-Explicar que dados podem ser alterados
+Qualquer um dos dados na requisição de exemplo pode ser enviado, tanto
+individualmente quanto em qualquer combinação.
 
 ```json
 {
@@ -508,7 +575,8 @@ _Resposta:_
 
 ### DELETE/inventory/id: integer
 
-Explicar que os atributos são zerados
+Ao deletar um item no estoque, seus valores serão zerados. Porém, seus registros e
+conexões com produtos serão mantidos.
 
 _Resposta:_
 
@@ -522,8 +590,6 @@ _Resposta:_
 
 ## Melhorias
 
-Que melhorias você fez no seu código? Ex: refatorações, melhorias de performance, acessibilidade, etc
-
-## Aprendizados
-
-O que você aprendeu construindo esse projeto? Quais desafios você enfrentou e como você superou-os?
+Seria necessário implementar um sistema de criação de **funcionários**.
+No momento, apenas **clientes** podem ser criados através das rotas, sendo
+necessário alterar o código para registrar usuário do tipo **funcionário**.
