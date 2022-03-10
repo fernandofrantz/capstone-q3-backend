@@ -323,22 +323,26 @@ Requisição:
 {
     "order": [
         {id, qtde}
-    ],
-    "discount": "20%"
+    ]
 }
 ```
 
 ​
 Resposta:
 
-E-MAIL
+
 
 ```json
 {
-    "order": [
-        {id, qtde}
+  "id":int,
+  "quantity":int,
+  "name":str,
+  "order_data":date,
+  "status":str,
+  "products": [
+      {id, qtde}
     ],
-    "total": float
+  "total": float
 }
 ```
 
@@ -374,10 +378,15 @@ Resposta:
 
 ```json
 {
-    "order": [
-        {id, qtde}
+  "id":int,
+  "quantity":int,
+  "name":str,
+  "order_data":date,
+  "status":str,
+  "products": [
+      {id, qtde}
     ],
-    "total": float
+  "total": float
 }
 ```
 
@@ -391,26 +400,35 @@ Atualização da compra do cliente. Precisa de acesso.
 ​
 Requisição:
 
+Requisição de PATCH para produtos
 ```json
 {
     "order": [
         {id, qtde}
-    ],
-    "discount": "20%"
+    ]
+}
+```
+Requisição de PATCH para status
+```json
+{
+  "status":str
 }
 ```
 
 ​
 Resposta:
 
-E-MAIL
-
 ```json
 {
-    "order": [
-        {id, qtde}
+  "id":int,
+  "quantity":int,
+  "name":str,
+  "order_data":date,
+  "status":str,
+  "products": [
+      {id, qtde}
     ],
-    "total": float
+  "total": float
 }
 ```
 
@@ -432,10 +450,7 @@ E-MAIL
 
 ```json
 {
-    "order": [
-        {id, qtde}
-    ],
-    "total": float
+{"msg":"Change status to Deleted"}
 }
 ```
 
