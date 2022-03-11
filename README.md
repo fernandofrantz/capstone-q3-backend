@@ -462,7 +462,7 @@ _Resposta:_
 
 Uma order também pode ser alterada por um funcionário, caso necessário. Para
 alterar a quantidade de um ou mais produtos, deve ser enviada uma lista dentro do
-campo **order**. O **status** da compra também pode ser modificado, porém, os
+campo **products**. O **status** da compra também pode ser modificado, porém, os
 únicos valores aceitos são **"complete"** ou **"active"**.
 
 ```json
