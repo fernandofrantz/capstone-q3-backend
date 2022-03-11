@@ -467,7 +467,7 @@ campo **order**. O **status** da compra também pode ser modificado, porém, os
 
 ```json
 {
-  "order": [
+  "products": [
 	{
       "id": integer,
       "quantity": integer
